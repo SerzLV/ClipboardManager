@@ -1,0 +1,459 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="WindowTitle" xml:space="preserve">
+    <value>Менеджер буфера обмена</value>
+  </data>
+  <data name="AppTitle" xml:space="preserve">
+    <value>Буфер обмена</value>
+  </data>
+  <data name="LanguageToolTip" xml:space="preserve">
+    <value>Язык интерфейса</value>
+  </data>
+  <data name="SettingsToolTip" xml:space="preserve">
+    <value>Настройки</value>
+  </data>
+  <data name="SettingsTitle" xml:space="preserve">
+    <value>Настройки</value>
+  </data>
+  <data name="SettingsShellTitle" xml:space="preserve">
+    <value>Окно</value>
+  </data>
+  <data name="SettingsHistoryTitle" xml:space="preserve">
+    <value>История</value>
+  </data>
+  <data name="SettingsShortcutsTitle" xml:space="preserve">
+    <value>Горячие клавиши</value>
+  </data>
+  <data name="MinimizeToTraySetting" xml:space="preserve">
+    <value>Сворачивать в трей</value>
+  </data>
+  <data name="StartWithWindowsSetting" xml:space="preserve">
+    <value>Запускать вместе с Windows</value>
+  </data>
+  <data name="GlobalHotKeySetting" xml:space="preserve">
+    <value>Открыть / свернуть</value>
+  </data>
+  <data name="HistoryBatchSizeSetting" xml:space="preserve">
+    <value>Записей за подгрузку</value>
+  </data>
+  <data name="HistoryBatchSizeDescription" xml:space="preserve">
+    <value>Используется при умной подгрузке во время прокрутки.</value>
+  </data>
+  <data name="ClearHistorySetting" xml:space="preserve">
+    <value>Очистить историю</value>
+  </data>
+  <data name="ClearHistoryDescription" xml:space="preserve">
+    <value>Удалить файлы, текст, ссылки и изображения. Секреты останутся.</value>
+  </data>
+  <data name="ClearHistoryButton" xml:space="preserve">
+    <value>Очистить</value>
+  </data>
+  <data name="LinkRefreshIntervalSetting" xml:space="preserve">
+    <value>Обновление ссылок</value>
+  </data>
+  <data name="LinkRefreshIntervalDescription" xml:space="preserve">
+    <value>Обновлять названия, описания и превью ссылок в фоне.</value>
+  </data>
+  <data name="ClearLinkPreviewCacheSetting" xml:space="preserve">
+    <value>Кэш превью</value>
+  </data>
+  <data name="ClearLinkPreviewCacheDescription" xml:space="preserve">
+    <value>Удалить локально сохраненные preview-картинки ссылок.</value>
+  </data>
+  <data name="ClearLinkPreviewCacheButton" xml:space="preserve">
+    <value>Очистить</value>
+  </data>
+  <data name="LinkRefreshNeverOption" xml:space="preserve">
+    <value>Никогда</value>
+  </data>
+  <data name="LinkRefresh7DaysOption" xml:space="preserve">
+    <value>Каждые 7 дней</value>
+  </data>
+  <data name="LinkRefresh30DaysOption" xml:space="preserve">
+    <value>Каждые 30 дней</value>
+  </data>
+  <data name="TrayOpenMenuItem" xml:space="preserve">
+    <value>Открыть Clipboard Manager</value>
+  </data>
+  <data name="TrayExitMenuItem" xml:space="preserve">
+    <value>Выйти</value>
+  </data>
+  <data name="GlobalHotKeyUnavailableTitle" xml:space="preserve">
+    <value>Горячая клавиша недоступна</value>
+  </data>
+  <data name="StartupSettingFailedTitle" xml:space="preserve">
+    <value>Не удалось сохранить автозапуск</value>
+  </data>
+  <data name="SearchPlaceholder" xml:space="preserve">
+    <value>Поиск по истории</value>
+  </data>
+  <data name="FavoritesTab" xml:space="preserve">
+    <value>Избранное</value>
+  </data>
+  <data name="FilesTab" xml:space="preserve">
+    <value>Файлы</value>
+  </data>
+  <data name="TextTab" xml:space="preserve">
+    <value>Текст</value>
+  </data>
+  <data name="LinksTab" xml:space="preserve">
+    <value>Ссылки</value>
+  </data>
+  <data name="ImagesTab" xml:space="preserve">
+    <value>Изображения</value>
+  </data>
+  <data name="SecretsTab" xml:space="preserve">
+    <value>Секреты</value>
+  </data>
+  <data name="CopyToolTip" xml:space="preserve">
+    <value>Копировать</value>
+  </data>
+  <data name="OpenToolTip" xml:space="preserve">
+    <value>Открыть</value>
+  </data>
+  <data name="DeleteToolTip" xml:space="preserve">
+    <value>Удалить</value>
+  </data>
+  <data name="SaveImageToolTip" xml:space="preserve">
+    <value>Сохранить изображение</value>
+  </data>
+  <data name="SaveAsSecretToolTip" xml:space="preserve">
+    <value>Сохранить как секрет</value>
+  </data>
+  <data name="ShowSecretToolTip" xml:space="preserve">
+    <value>Показать секрет</value>
+  </data>
+  <data name="HideSecretToolTip" xml:space="preserve">
+    <value>Скрыть секрет</value>
+  </data>
+  <data name="ImportToolTip" xml:space="preserve">
+    <value>Импорт</value>
+  </data>
+  <data name="ExportToolTip" xml:space="preserve">
+    <value>Экспорт</value>
+  </data>
+  <data name="ClearToolTip" xml:space="preserve">
+    <value>Очистить</value>
+  </data>
+  <data name="ClearSearchToolTip" xml:space="preserve">
+    <value>Очистить поиск</value>
+  </data>
+  <data name="ZoomOutToolTip" xml:space="preserve">
+    <value>Уменьшить</value>
+  </data>
+  <data name="ResetZoomToolTip" xml:space="preserve">
+    <value>Сбросить масштаб</value>
+  </data>
+  <data name="ZoomInToolTip" xml:space="preserve">
+    <value>Увеличить</value>
+  </data>
+  <data name="CloseToolTip" xml:space="preserve">
+    <value>Закрыть</value>
+  </data>
+  <data name="AddToFavoritesToolTip" xml:space="preserve">
+    <value>Добавить в избранное</value>
+  </data>
+  <data name="RemoveFromFavoritesToolTip" xml:space="preserve">
+    <value>Убрать из избранного</value>
+  </data>
+  <data name="MonitoringActiveStatus" xml:space="preserve">
+    <value>Мониторинг буфера обмена активен</value>
+  </data>
+  <data name="LoadingHistoryStatus" xml:space="preserve">
+    <value>Загрузка истории...</value>
+  </data>
+  <data name="LoadingMoreHistoryStatus" xml:space="preserve">
+    <value>Подгружаю записи...</value>
+  </data>
+  <data name="LoadingLinksStatus" xml:space="preserve">
+    <value>Загружаю ссылки...</value>
+  </data>
+  <data name="NoNewEntriesText" xml:space="preserve">
+    <value>Пока нет новых записей</value>
+  </data>
+  <data name="HistoryEmptyStatus" xml:space="preserve">
+    <value>История пуста, можно копировать новые данные</value>
+  </data>
+  <data name="ExportingHistoryStatus" xml:space="preserve">
+    <value>Экспорт истории...</value>
+  </data>
+  <data name="ImportingHistoryStatus" xml:space="preserve">
+    <value>Импорт истории...</value>
+  </data>
+  <data name="HistoryClearedStatus" xml:space="preserve">
+    <value>История очищена</value>
+  </data>
+  <data name="ItemDeletedStatus" xml:space="preserve">
+    <value>Элемент удален</value>
+  </data>
+  <data name="CopiedStatus" xml:space="preserve">
+    <value>Скопировано в буфер обмена</value>
+  </data>
+  <data name="LinkOpenedStatus" xml:space="preserve">
+    <value>Ссылка открыта</value>
+  </data>
+  <data name="FileOpenedStatus" xml:space="preserve">
+    <value>Файл открыт</value>
+  </data>
+  <data name="ImageOpenedStatus" xml:space="preserve">
+    <value>Изображение открыто</value>
+  </data>
+  <data name="ImageSavedStatus" xml:space="preserve">
+    <value>Изображение сохранено</value>
+  </data>
+  <data name="SecretSavedStatus" xml:space="preserve">
+    <value>Секрет сохранен</value>
+  </data>
+  <data name="SecretRevealedStatus" xml:space="preserve">
+    <value>Секрет показан</value>
+  </data>
+  <data name="SecretHiddenStatus" xml:space="preserve">
+    <value>Секрет скрыт</value>
+  </data>
+  <data name="SecretAccessDeniedStatus" xml:space="preserve">
+    <value>Проверка Windows не завершена</value>
+  </data>
+  <data name="AddedToFavoritesStatus" xml:space="preserve">
+    <value>Добавлено в избранное</value>
+  </data>
+  <data name="RemovedFromFavoritesStatus" xml:space="preserve">
+    <value>Удалено из избранного</value>
+  </data>
+  <data name="LinkPreviewCacheClearedStatusFormat" xml:space="preserve">
+    <value>Очищено preview-картинок ссылок: {0}</value>
+  </data>
+  <data name="FavoritesEmptySearchTitle" xml:space="preserve">
+    <value>В избранном ничего не найдено</value>
+  </data>
+  <data name="FavoritesEmptyTitle" xml:space="preserve">
+    <value>Избранного пока нет</value>
+  </data>
+  <data name="FavoritesEmptySearchDescription" xml:space="preserve">
+    <value>Попробуйте другой запрос или посмотрите исходные вкладки.</value>
+  </data>
+  <data name="FavoritesEmptyDescription" xml:space="preserve">
+    <value>Нажмите звезду на важной записи, чтобы она появилась здесь.</value>
+  </data>
+  <data name="FilesEmptySearchTitle" xml:space="preserve">
+    <value>В файлах ничего не найдено</value>
+  </data>
+  <data name="FilesEmptyTitle" xml:space="preserve">
+    <value>Файлов пока нет</value>
+  </data>
+  <data name="FilesEmptySearchDescription" xml:space="preserve">
+    <value>Попробуйте другой запрос или проверьте соседние разделы.</value>
+  </data>
+  <data name="FilesEmptyDescription" xml:space="preserve">
+    <value>Скопируйте файл в системе, и он появится здесь.</value>
+  </data>
+  <data name="TextsEmptySearchTitle" xml:space="preserve">
+    <value>В тексте ничего не найдено</value>
+  </data>
+  <data name="TextsEmptyTitle" xml:space="preserve">
+    <value>Текстовых записей пока нет</value>
+  </data>
+  <data name="TextsEmptySearchDescription" xml:space="preserve">
+    <value>Поиск проверяет содержимое сохраненных текстовых фрагментов.</value>
+  </data>
+  <data name="TextsEmptyDescription" xml:space="preserve">
+    <value>Скопируйте любой текст, чтобы добавить его в историю.</value>
+  </data>
+  <data name="UrlsEmptySearchTitle" xml:space="preserve">
+    <value>В ссылках ничего не найдено</value>
+  </data>
+  <data name="UrlsEmptyTitle" xml:space="preserve">
+    <value>Ссылок пока нет</value>
+  </data>
+  <data name="UrlsEmptySearchDescription" xml:space="preserve">
+    <value>Поиск идет по адресу, заголовку и описанию ссылки.</value>
+  </data>
+  <data name="UrlsEmptyDescription" xml:space="preserve">
+    <value>Скопируйте URL, чтобы увидеть карточку ссылки.</value>
+  </data>
+  <data name="ImagesEmptySearchTitle" xml:space="preserve">
+    <value>В изображениях ничего не найдено</value>
+  </data>
+  <data name="ImagesEmptyTitle" xml:space="preserve">
+    <value>Изображений пока нет</value>
+  </data>
+  <data name="ImagesEmptySearchDescription" xml:space="preserve">
+    <value>Для изображений поиск проверяет имя сохраненной записи.</value>
+  </data>
+  <data name="ImagesEmptyDescription" xml:space="preserve">
+    <value>Скопируйте картинку, чтобы добавить ее в галерею.</value>
+  </data>
+  <data name="SecretsEmptySearchTitle" xml:space="preserve">
+    <value>В секретах ничего не найдено</value>
+  </data>
+  <data name="SecretsEmptyTitle" xml:space="preserve">
+    <value>Секретов пока нет</value>
+  </data>
+  <data name="SecretsEmptySearchDescription" xml:space="preserve">
+    <value>Поиск проверяет названия сохраненных секретов.</value>
+  </data>
+  <data name="SecretsEmptyDescription" xml:space="preserve">
+    <value>Используйте замок у текстовой записи, чтобы перенести ее сюда.</value>
+  </data>
+  <data name="FileTypeLabel" xml:space="preserve">
+    <value>Файл</value>
+  </data>
+  <data name="TextTypeLabel" xml:space="preserve">
+    <value>Текст</value>
+  </data>
+  <data name="LinkTypeLabel" xml:space="preserve">
+    <value>Ссылка</value>
+  </data>
+  <data name="ImageTypeLabel" xml:space="preserve">
+    <value>Изображение</value>
+  </data>
+  <data name="SecretTypeLabel" xml:space="preserve">
+    <value>Секрет</value>
+  </data>
+  <data name="ItemTypeLabel" xml:space="preserve">
+    <value>Запись</value>
+  </data>
+  <data name="TextRecordLabel" xml:space="preserve">
+    <value>Текстовая запись</value>
+  </data>
+  <data name="SecretRecordLabel" xml:space="preserve">
+    <value>Защищенная запись</value>
+  </data>
+  <data name="FavoriteRecordLabel" xml:space="preserve">
+    <value>Избранная запись</value>
+  </data>
+  <data name="SecretNameDialogTitle" xml:space="preserve">
+    <value>Сохранить секрет</value>
+  </data>
+  <data name="SecretNameDialogDescription" xml:space="preserve">
+    <value>Задайте название для этого секрета.</value>
+  </data>
+  <data name="SecretNameLabel" xml:space="preserve">
+    <value>Название</value>
+  </data>
+  <data name="SaveSecretButton" xml:space="preserve">
+    <value>Сохранить</value>
+  </data>
+  <data name="CancelButton" xml:space="preserve">
+    <value>Отмена</value>
+  </data>
+  <data name="SecretNameRequiredMessage" xml:space="preserve">
+    <value>Введите название.</value>
+  </data>
+  <data name="WindowsVerificationUnavailableMessage" xml:space="preserve">
+    <value>Проверка Windows недоступна. Настройте Windows Hello или PIN-код для доступа к секретам.</value>
+  </data>
+  <data name="WindowsPasswordPromptTitle" xml:space="preserve">
+    <value>Проверка Windows</value>
+  </data>
+  <data name="ExportDialogTitle" xml:space="preserve">
+    <value>Экспорт истории буфера обмена</value>
+  </data>
+  <data name="ImportDialogTitle" xml:space="preserve">
+    <value>Импорт истории буфера обмена</value>
+  </data>
+  <data name="SaveImageDialogTitle" xml:space="preserve">
+    <value>Сохранить изображение</value>
+  </data>
+  <data name="BackupFilter" xml:space="preserve">
+    <value>Резервная копия Clipboard Manager (*.clipboard.json)|*.clipboard.json|JSON-файлы (*.json)|*.json</value>
+  </data>
+  <data name="ImageSaveFilter" xml:space="preserve">
+    <value>PNG-изображение (*.png)|*.png|JPEG-изображение (*.jpg)|*.jpg;*.jpeg|BMP-изображение (*.bmp)|*.bmp</value>
+  </data>
+  <data name="UnsupportedImportFormatMessage" xml:space="preserve">
+    <value>Файл импорта имеет неподдерживаемый формат.</value>
+  </data>
+  <data name="ClipboardProcessingFailedTitle" xml:space="preserve">
+    <value>Ошибка обработки буфера</value>
+  </data>
+  <data name="DeleteFailedTitle" xml:space="preserve">
+    <value>Не удалось удалить</value>
+  </data>
+  <data name="CopyFailedTitle" xml:space="preserve">
+    <value>Не удалось скопировать</value>
+  </data>
+  <data name="OpenFailedTitle" xml:space="preserve">
+    <value>Не удалось открыть</value>
+  </data>
+  <data name="SaveImageFailedTitle" xml:space="preserve">
+    <value>Не удалось сохранить изображение</value>
+  </data>
+  <data name="SecretVerificationFailedTitle" xml:space="preserve">
+    <value>Проверка Windows не выполнена</value>
+  </data>
+  <data name="PinUpdateFailedTitle" xml:space="preserve">
+    <value>Не удалось обновить избранное</value>
+  </data>
+  <data name="AutoSaveFailedTitle" xml:space="preserve">
+    <value>Ошибка автосохранения</value>
+  </data>
+  <data name="OperationFailedTitle" xml:space="preserve">
+    <value>Операция не выполнена</value>
+  </data>
+  <data name="LastActivityTextFormat" xml:space="preserve">
+    <value>Последнее обновление: {0:HH:mm:ss}</value>
+  </data>
+  <data name="SearchResultTextFormat" xml:space="preserve">
+    <value>Найдено: {0} из {1}</value>
+  </data>
+  <data name="HistoryLoadedStatusFormat" xml:space="preserve">
+    <value>История загружена: {0}</value>
+  </data>
+  <data name="AddedNewItemsStatusFormat" xml:space="preserve">
+    <value>Добавлено новых элементов: {0}</value>
+  </data>
+  <data name="HistoryExportedStatusFormat" xml:space="preserve">
+    <value>История экспортирована: {0}</value>
+  </data>
+  <data name="ImportedWithPinnedStatusFormat" xml:space="preserve">
+    <value>Импортировано новых: {0}, обновлено избранное: {1}</value>
+  </data>
+  <data name="ImportedItemsStatusFormat" xml:space="preserve">
+    <value>Импортировано новых элементов: {0}</value>
+  </data>
+  <data name="AutoSavedItemsStatusFormat" xml:space="preserve">
+    <value>Автосохранено элементов: {0}</value>
+  </data>
+  <data name="SecretCopiedStatusFormat" xml:space="preserve">
+    <value>Секрет скопирован. Буфер очистится через {0} сек., пароль не нужен {1} сек.</value>
+  </data>
+  <data name="SecretRevealVerificationMessageFormat" xml:space="preserve">
+    <value>Показать секрет: {0}</value>
+  </data>
+  <data name="SecretCopyVerificationMessageFormat" xml:space="preserve">
+    <value>Скопировать секрет: {0}</value>
+  </data>
+  <data name="GlobalHotKeyUnavailableMessageFormat" xml:space="preserve">
+    <value>{0} уже используется другим приложением.</value>
+  </data>
+  <data name="StartupSettingFailedMessageFormat" xml:space="preserve">
+    <value>Не удалось сохранить настройку запуска вместе с Windows ({0}).</value>
+  </data>
+  <data name="EnabledState" xml:space="preserve">
+    <value>включено</value>
+  </data>
+  <data name="DisabledState" xml:space="preserve">
+    <value>выключено</value>
+  </data>
+  <data name="ItemCountOne" xml:space="preserve">
+    <value>элемент</value>
+  </data>
+  <data name="ItemCountFew" xml:space="preserve">
+    <value>элемента</value>
+  </data>
+  <data name="ItemCountMany" xml:space="preserve">
+    <value>элементов</value>
+  </data>
+</root>

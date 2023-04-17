@@ -1,0 +1,459 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="WindowTitle" xml:space="preserve">
+    <value>Clipboard Manager</value>
+  </data>
+  <data name="AppTitle" xml:space="preserve">
+    <value>Clipboard</value>
+  </data>
+  <data name="LanguageToolTip" xml:space="preserve">
+    <value>Interface language</value>
+  </data>
+  <data name="SettingsToolTip" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="SettingsTitle" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="SettingsShellTitle" xml:space="preserve">
+    <value>Window</value>
+  </data>
+  <data name="SettingsHistoryTitle" xml:space="preserve">
+    <value>History</value>
+  </data>
+  <data name="SettingsShortcutsTitle" xml:space="preserve">
+    <value>Shortcuts</value>
+  </data>
+  <data name="MinimizeToTraySetting" xml:space="preserve">
+    <value>Minimize to tray</value>
+  </data>
+  <data name="StartWithWindowsSetting" xml:space="preserve">
+    <value>Start with Windows</value>
+  </data>
+  <data name="GlobalHotKeySetting" xml:space="preserve">
+    <value>Open / minimize</value>
+  </data>
+  <data name="HistoryBatchSizeSetting" xml:space="preserve">
+    <value>Records per load</value>
+  </data>
+  <data name="HistoryBatchSizeDescription" xml:space="preserve">
+    <value>Used for smart loading while scrolling.</value>
+  </data>
+  <data name="ClearHistorySetting" xml:space="preserve">
+    <value>Clear history</value>
+  </data>
+  <data name="ClearHistoryDescription" xml:space="preserve">
+    <value>Remove files, text, links, and images. Secrets stay untouched.</value>
+  </data>
+  <data name="ClearHistoryButton" xml:space="preserve">
+    <value>Clear</value>
+  </data>
+  <data name="LinkRefreshIntervalSetting" xml:space="preserve">
+    <value>Link refresh</value>
+  </data>
+  <data name="LinkRefreshIntervalDescription" xml:space="preserve">
+    <value>Refresh saved link titles and previews in the background.</value>
+  </data>
+  <data name="ClearLinkPreviewCacheSetting" xml:space="preserve">
+    <value>Preview cache</value>
+  </data>
+  <data name="ClearLinkPreviewCacheDescription" xml:space="preserve">
+    <value>Remove cached link preview images from this device.</value>
+  </data>
+  <data name="ClearLinkPreviewCacheButton" xml:space="preserve">
+    <value>Clear</value>
+  </data>
+  <data name="LinkRefreshNeverOption" xml:space="preserve">
+    <value>Never</value>
+  </data>
+  <data name="LinkRefresh7DaysOption" xml:space="preserve">
+    <value>Every 7 days</value>
+  </data>
+  <data name="LinkRefresh30DaysOption" xml:space="preserve">
+    <value>Every 30 days</value>
+  </data>
+  <data name="TrayOpenMenuItem" xml:space="preserve">
+    <value>Open Clipboard Manager</value>
+  </data>
+  <data name="TrayExitMenuItem" xml:space="preserve">
+    <value>Exit</value>
+  </data>
+  <data name="GlobalHotKeyUnavailableTitle" xml:space="preserve">
+    <value>Hotkey unavailable</value>
+  </data>
+  <data name="StartupSettingFailedTitle" xml:space="preserve">
+    <value>Startup setting failed</value>
+  </data>
+  <data name="SearchPlaceholder" xml:space="preserve">
+    <value>Search history</value>
+  </data>
+  <data name="FavoritesTab" xml:space="preserve">
+    <value>Favorites</value>
+  </data>
+  <data name="FilesTab" xml:space="preserve">
+    <value>Files</value>
+  </data>
+  <data name="TextTab" xml:space="preserve">
+    <value>Text</value>
+  </data>
+  <data name="LinksTab" xml:space="preserve">
+    <value>Links</value>
+  </data>
+  <data name="ImagesTab" xml:space="preserve">
+    <value>Images</value>
+  </data>
+  <data name="SecretsTab" xml:space="preserve">
+    <value>Secrets</value>
+  </data>
+  <data name="CopyToolTip" xml:space="preserve">
+    <value>Copy</value>
+  </data>
+  <data name="OpenToolTip" xml:space="preserve">
+    <value>Open</value>
+  </data>
+  <data name="DeleteToolTip" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="SaveImageToolTip" xml:space="preserve">
+    <value>Save image</value>
+  </data>
+  <data name="SaveAsSecretToolTip" xml:space="preserve">
+    <value>Save as secret</value>
+  </data>
+  <data name="ShowSecretToolTip" xml:space="preserve">
+    <value>Show secret</value>
+  </data>
+  <data name="HideSecretToolTip" xml:space="preserve">
+    <value>Hide secret</value>
+  </data>
+  <data name="ImportToolTip" xml:space="preserve">
+    <value>Import</value>
+  </data>
+  <data name="ExportToolTip" xml:space="preserve">
+    <value>Export</value>
+  </data>
+  <data name="ClearToolTip" xml:space="preserve">
+    <value>Clear</value>
+  </data>
+  <data name="ClearSearchToolTip" xml:space="preserve">
+    <value>Clear search</value>
+  </data>
+  <data name="ZoomOutToolTip" xml:space="preserve">
+    <value>Zoom out</value>
+  </data>
+  <data name="ResetZoomToolTip" xml:space="preserve">
+    <value>Reset zoom</value>
+  </data>
+  <data name="ZoomInToolTip" xml:space="preserve">
+    <value>Zoom in</value>
+  </data>
+  <data name="CloseToolTip" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="AddToFavoritesToolTip" xml:space="preserve">
+    <value>Add to favorites</value>
+  </data>
+  <data name="RemoveFromFavoritesToolTip" xml:space="preserve">
+    <value>Remove from favorites</value>
+  </data>
+  <data name="MonitoringActiveStatus" xml:space="preserve">
+    <value>Clipboard monitoring is active</value>
+  </data>
+  <data name="LoadingHistoryStatus" xml:space="preserve">
+    <value>Loading history...</value>
+  </data>
+  <data name="LoadingMoreHistoryStatus" xml:space="preserve">
+    <value>Loading more...</value>
+  </data>
+  <data name="LoadingLinksStatus" xml:space="preserve">
+    <value>Loading links...</value>
+  </data>
+  <data name="NoNewEntriesText" xml:space="preserve">
+    <value>No new items yet</value>
+  </data>
+  <data name="HistoryEmptyStatus" xml:space="preserve">
+    <value>History is empty, copy something to get started</value>
+  </data>
+  <data name="ExportingHistoryStatus" xml:space="preserve">
+    <value>Exporting history...</value>
+  </data>
+  <data name="ImportingHistoryStatus" xml:space="preserve">
+    <value>Importing history...</value>
+  </data>
+  <data name="HistoryClearedStatus" xml:space="preserve">
+    <value>History cleared</value>
+  </data>
+  <data name="ItemDeletedStatus" xml:space="preserve">
+    <value>Item deleted</value>
+  </data>
+  <data name="CopiedStatus" xml:space="preserve">
+    <value>Copied to clipboard</value>
+  </data>
+  <data name="LinkOpenedStatus" xml:space="preserve">
+    <value>Link opened</value>
+  </data>
+  <data name="FileOpenedStatus" xml:space="preserve">
+    <value>File opened</value>
+  </data>
+  <data name="ImageOpenedStatus" xml:space="preserve">
+    <value>Image opened</value>
+  </data>
+  <data name="ImageSavedStatus" xml:space="preserve">
+    <value>Image saved</value>
+  </data>
+  <data name="SecretSavedStatus" xml:space="preserve">
+    <value>Secret saved</value>
+  </data>
+  <data name="SecretRevealedStatus" xml:space="preserve">
+    <value>Secret revealed</value>
+  </data>
+  <data name="SecretHiddenStatus" xml:space="preserve">
+    <value>Secret hidden</value>
+  </data>
+  <data name="SecretAccessDeniedStatus" xml:space="preserve">
+    <value>Windows verification was not completed</value>
+  </data>
+  <data name="AddedToFavoritesStatus" xml:space="preserve">
+    <value>Added to favorites</value>
+  </data>
+  <data name="RemovedFromFavoritesStatus" xml:space="preserve">
+    <value>Removed from favorites</value>
+  </data>
+  <data name="LinkPreviewCacheClearedStatusFormat" xml:space="preserve">
+    <value>Cleared {0} cached link preview images</value>
+  </data>
+  <data name="FavoritesEmptySearchTitle" xml:space="preserve">
+    <value>Nothing found in favorites</value>
+  </data>
+  <data name="FavoritesEmptyTitle" xml:space="preserve">
+    <value>No favorites yet</value>
+  </data>
+  <data name="FavoritesEmptySearchDescription" xml:space="preserve">
+    <value>Try another query or check the source tabs.</value>
+  </data>
+  <data name="FavoritesEmptyDescription" xml:space="preserve">
+    <value>Click the star on an important item to keep it here.</value>
+  </data>
+  <data name="FilesEmptySearchTitle" xml:space="preserve">
+    <value>Nothing found in files</value>
+  </data>
+  <data name="FilesEmptyTitle" xml:space="preserve">
+    <value>No files yet</value>
+  </data>
+  <data name="FilesEmptySearchDescription" xml:space="preserve">
+    <value>Try another query or check the nearby sections.</value>
+  </data>
+  <data name="FilesEmptyDescription" xml:space="preserve">
+    <value>Copy a file in the system and it will appear here.</value>
+  </data>
+  <data name="TextsEmptySearchTitle" xml:space="preserve">
+    <value>Nothing found in text</value>
+  </data>
+  <data name="TextsEmptyTitle" xml:space="preserve">
+    <value>No text items yet</value>
+  </data>
+  <data name="TextsEmptySearchDescription" xml:space="preserve">
+    <value>Search checks the content of saved text snippets.</value>
+  </data>
+  <data name="TextsEmptyDescription" xml:space="preserve">
+    <value>Copy any text to add it to history.</value>
+  </data>
+  <data name="UrlsEmptySearchTitle" xml:space="preserve">
+    <value>Nothing found in links</value>
+  </data>
+  <data name="UrlsEmptyTitle" xml:space="preserve">
+    <value>No links yet</value>
+  </data>
+  <data name="UrlsEmptySearchDescription" xml:space="preserve">
+    <value>Search checks the link address, title, and description.</value>
+  </data>
+  <data name="UrlsEmptyDescription" xml:space="preserve">
+    <value>Copy a URL to see its link card.</value>
+  </data>
+  <data name="ImagesEmptySearchTitle" xml:space="preserve">
+    <value>Nothing found in images</value>
+  </data>
+  <data name="ImagesEmptyTitle" xml:space="preserve">
+    <value>No images yet</value>
+  </data>
+  <data name="ImagesEmptySearchDescription" xml:space="preserve">
+    <value>For images, search checks the saved item name.</value>
+  </data>
+  <data name="ImagesEmptyDescription" xml:space="preserve">
+    <value>Copy an image to add it to the gallery.</value>
+  </data>
+  <data name="SecretsEmptySearchTitle" xml:space="preserve">
+    <value>Nothing found in secrets</value>
+  </data>
+  <data name="SecretsEmptyTitle" xml:space="preserve">
+    <value>No secrets yet</value>
+  </data>
+  <data name="SecretsEmptySearchDescription" xml:space="preserve">
+    <value>Search checks saved secret names.</value>
+  </data>
+  <data name="SecretsEmptyDescription" xml:space="preserve">
+    <value>Use the lock action on a text item to move it here.</value>
+  </data>
+  <data name="FileTypeLabel" xml:space="preserve">
+    <value>File</value>
+  </data>
+  <data name="TextTypeLabel" xml:space="preserve">
+    <value>Text</value>
+  </data>
+  <data name="LinkTypeLabel" xml:space="preserve">
+    <value>Link</value>
+  </data>
+  <data name="ImageTypeLabel" xml:space="preserve">
+    <value>Image</value>
+  </data>
+  <data name="SecretTypeLabel" xml:space="preserve">
+    <value>Secret</value>
+  </data>
+  <data name="ItemTypeLabel" xml:space="preserve">
+    <value>Item</value>
+  </data>
+  <data name="TextRecordLabel" xml:space="preserve">
+    <value>Text item</value>
+  </data>
+  <data name="SecretRecordLabel" xml:space="preserve">
+    <value>Protected item</value>
+  </data>
+  <data name="FavoriteRecordLabel" xml:space="preserve">
+    <value>Favorite item</value>
+  </data>
+  <data name="SecretNameDialogTitle" xml:space="preserve">
+    <value>Save secret</value>
+  </data>
+  <data name="SecretNameDialogDescription" xml:space="preserve">
+    <value>Give this secret a name.</value>
+  </data>
+  <data name="SecretNameLabel" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="SaveSecretButton" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="CancelButton" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="SecretNameRequiredMessage" xml:space="preserve">
+    <value>Enter a name.</value>
+  </data>
+  <data name="WindowsVerificationUnavailableMessage" xml:space="preserve">
+    <value>Windows verification is unavailable. Set up Windows Hello or PIN to access secrets.</value>
+  </data>
+  <data name="WindowsPasswordPromptTitle" xml:space="preserve">
+    <value>Windows verification</value>
+  </data>
+  <data name="ExportDialogTitle" xml:space="preserve">
+    <value>Export clipboard history</value>
+  </data>
+  <data name="ImportDialogTitle" xml:space="preserve">
+    <value>Import clipboard history</value>
+  </data>
+  <data name="SaveImageDialogTitle" xml:space="preserve">
+    <value>Save image</value>
+  </data>
+  <data name="BackupFilter" xml:space="preserve">
+    <value>Clipboard Manager backup (*.clipboard.json)|*.clipboard.json|JSON files (*.json)|*.json</value>
+  </data>
+  <data name="ImageSaveFilter" xml:space="preserve">
+    <value>PNG image (*.png)|*.png|JPEG image (*.jpg)|*.jpg;*.jpeg|Bitmap image (*.bmp)|*.bmp</value>
+  </data>
+  <data name="UnsupportedImportFormatMessage" xml:space="preserve">
+    <value>The import file has an unsupported format.</value>
+  </data>
+  <data name="ClipboardProcessingFailedTitle" xml:space="preserve">
+    <value>Clipboard processing failed</value>
+  </data>
+  <data name="DeleteFailedTitle" xml:space="preserve">
+    <value>Delete failed</value>
+  </data>
+  <data name="CopyFailedTitle" xml:space="preserve">
+    <value>Copy failed</value>
+  </data>
+  <data name="OpenFailedTitle" xml:space="preserve">
+    <value>Open failed</value>
+  </data>
+  <data name="SaveImageFailedTitle" xml:space="preserve">
+    <value>Save image failed</value>
+  </data>
+  <data name="SecretVerificationFailedTitle" xml:space="preserve">
+    <value>Windows verification failed</value>
+  </data>
+  <data name="PinUpdateFailedTitle" xml:space="preserve">
+    <value>Favorite update failed</value>
+  </data>
+  <data name="AutoSaveFailedTitle" xml:space="preserve">
+    <value>Auto-save failed</value>
+  </data>
+  <data name="OperationFailedTitle" xml:space="preserve">
+    <value>Operation failed</value>
+  </data>
+  <data name="LastActivityTextFormat" xml:space="preserve">
+    <value>Last update: {0:HH:mm:ss}</value>
+  </data>
+  <data name="SearchResultTextFormat" xml:space="preserve">
+    <value>Found: {0} of {1}</value>
+  </data>
+  <data name="HistoryLoadedStatusFormat" xml:space="preserve">
+    <value>History loaded: {0}</value>
+  </data>
+  <data name="AddedNewItemsStatusFormat" xml:space="preserve">
+    <value>Added new items: {0}</value>
+  </data>
+  <data name="HistoryExportedStatusFormat" xml:space="preserve">
+    <value>History exported: {0}</value>
+  </data>
+  <data name="ImportedWithPinnedStatusFormat" xml:space="preserve">
+    <value>Imported new: {0}, favorites updated: {1}</value>
+  </data>
+  <data name="ImportedItemsStatusFormat" xml:space="preserve">
+    <value>Imported new items: {0}</value>
+  </data>
+  <data name="AutoSavedItemsStatusFormat" xml:space="preserve">
+    <value>Auto-saved items: {0}</value>
+  </data>
+  <data name="SecretCopiedStatusFormat" xml:space="preserve">
+    <value>Secret copied. Clipboard clears in {0} seconds, no password needed for {1} seconds</value>
+  </data>
+  <data name="SecretRevealVerificationMessageFormat" xml:space="preserve">
+    <value>Show secret: {0}</value>
+  </data>
+  <data name="SecretCopyVerificationMessageFormat" xml:space="preserve">
+    <value>Copy secret: {0}</value>
+  </data>
+  <data name="GlobalHotKeyUnavailableMessageFormat" xml:space="preserve">
+    <value>{0} is already used by another app.</value>
+  </data>
+  <data name="StartupSettingFailedMessageFormat" xml:space="preserve">
+    <value>Could not save Windows startup setting ({0}).</value>
+  </data>
+  <data name="EnabledState" xml:space="preserve">
+    <value>enabled</value>
+  </data>
+  <data name="DisabledState" xml:space="preserve">
+    <value>disabled</value>
+  </data>
+  <data name="ItemCountOne" xml:space="preserve">
+    <value>item</value>
+  </data>
+  <data name="ItemCountFew" xml:space="preserve">
+    <value>items</value>
+  </data>
+  <data name="ItemCountMany" xml:space="preserve">
+    <value>items</value>
+  </data>
+</root>

@@ -1,0 +1,135 @@
+<UserControl x:Class="ClipboardManager.Views.ImagePreviewOverlay"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:helper="clr-namespace:ClipboardManager.Helper"
+             xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+    </UserControl.Resources>
+
+    <Border Background="#B3111827"
+            CornerRadius="8"
+            Padding="28"
+            Visibility="{Binding IsImagePreviewOpen, Converter={StaticResource BoolToVisibilityConverter}}">
+        <Border Background="{DynamicResource SurfaceBrush}"
+                BorderBrush="{DynamicResource StrokeBrush}"
+                BorderThickness="1"
+                CornerRadius="8"
+                Padding="14"
+                Effect="{DynamicResource SoftShadow}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <Grid Margin="2,0,2,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="{Binding PreviewImageName}"
+                                   FontSize="16"
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource TextBrush}"
+                                   TextTrimming="CharacterEllipsis" />
+                        <TextBlock Text="{Binding PreviewZoomText}"
+                                   Margin="0,4,0,0"
+                                   Style="{DynamicResource MutedTextStyle}" />
+                    </StackPanel>
+
+                    <Border Grid.Column="1"
+                            Style="{DynamicResource ActionGroupStyle}"
+                            VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal">
+                            <Button Command="{Binding ZoomOutImageCommand}"
+                                    Style="{DynamicResource IconButtonStyle}"
+                                    ToolTip="{Binding L.ZoomOutToolTip}">
+                                <TextBlock Text="-"
+                                           FontSize="20"
+                                           FontWeight="SemiBold"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center" />
+                            </Button>
+                            <Button Command="{Binding ResetImageZoomCommand}"
+                                    Style="{DynamicResource IconButtonStyle}"
+                                    Margin="2,0,0,0"
+                                    ToolTip="{Binding L.ResetZoomToolTip}">
+                                <Viewbox Width="17" Height="17">
+                                    <iconPacks:Material Kind="Magnify" Width="17" Height="17" />
+                                </Viewbox>
+                            </Button>
+                            <Button Command="{Binding ZoomInImageCommand}"
+                                    Style="{DynamicResource IconButtonStyle}"
+                                    Margin="2,0,0,0"
+                                    ToolTip="{Binding L.ZoomInToolTip}">
+                                <TextBlock Text="+"
+                                           FontSize="18"
+                                           FontWeight="SemiBold"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center" />
+                            </Button>
+                            <Button Command="{Binding CopyCommand}"
+                                    CommandParameter="{Binding PreviewImage}"
+                                    Style="{DynamicResource IconButtonStyle}"
+                                    Margin="2,0,0,0"
+                                    ToolTip="{Binding L.CopyToolTip}">
+                                <Viewbox Width="18" Height="18">
+                                    <iconPacks:Material Kind="ContentCopy" Width="18" Height="18" />
+                                </Viewbox>
+                            </Button>
+                            <Button Command="{Binding SaveImageCommand}"
+                                    CommandParameter="{Binding PreviewImage}"
+                                    Style="{DynamicResource IconButtonStyle}"
+                                    Margin="2,0,0,0"
+                                    ToolTip="{Binding L.SaveImageToolTip}">
+                                <Viewbox Width="18" Height="18">
+                                    <iconPacks:Material Kind="ContentSave" Width="18" Height="18" />
+                                </Viewbox>
+                            </Button>
+                            <Button Command="{Binding CloseImagePreviewCommand}"
+                                    Style="{DynamicResource DangerIconButtonStyle}"
+                                    Margin="2,0,0,0"
+                                    ToolTip="{Binding L.CloseToolTip}">
+                                <Viewbox Width="18" Height="18">
+                                    <iconPacks:Material Kind="Close" Width="18" Height="18" />
+                                </Viewbox>
+                            </Button>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+
+                <Border Grid.Row="1"
+                        Background="{DynamicResource SurfaceAltBrush}"
+                        BorderBrush="{DynamicResource StrokeBrush}"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        ClipToBounds="True">
+                    <ScrollViewer HorizontalScrollBarVisibility="Auto"
+                                  VerticalScrollBarVisibility="Auto"
+                                  PanningMode="Both"
+                                  helper:ScrollViewerPanBehavior.IsEnabled="True"
+                                  helper:MouseWheelCommandBehavior.WheelUpCommand="{Binding ZoomInImageCommand}"
+                                  helper:MouseWheelCommandBehavior.WheelDownCommand="{Binding ZoomOutImageCommand}">
+                        <Grid MinHeight="420"
+                              HorizontalAlignment="Center"
+                              VerticalAlignment="Center">
+                            <Image Source="{Binding PreviewImageSource}"
+                                   Stretch="None"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   RenderOptions.BitmapScalingMode="HighQuality">
+                                <Image.LayoutTransform>
+                                    <ScaleTransform ScaleX="{Binding PreviewZoom}"
+                                                    ScaleY="{Binding PreviewZoom}" />
+                                </Image.LayoutTransform>
+                            </Image>
+                        </Grid>
+                    </ScrollViewer>
+                </Border>
+            </Grid>
+        </Border>
+    </Border>
+</UserControl>
