@@ -32,8 +32,8 @@ public static class LinkInformationExtractor
             result = new UrlModel
             {
                 Url = url,
-                Title = doc.DocumentNode.SelectSingleNode("//head/title")?.InnerText,
-                Description = doc.DocumentNode.SelectSingleNode("//head/meta[@name='description']")?.GetAttributeValue("content", ""),
+                Title = doc.DocumentNode.SelectSingleNode("//head/title")?.InnerText ?? string.Empty,
+                Description = doc.DocumentNode.SelectSingleNode("//head/meta[@name='description']")?.GetAttributeValue("content", "") ?? string.Empty,
                 ImageUrl = imageUrl ?? defaultImage,
             };
 
