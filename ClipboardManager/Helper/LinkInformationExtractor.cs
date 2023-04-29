@@ -34,7 +34,7 @@ public static class LinkInformationExtractor
                 Url = url,
                 Title = doc.DocumentNode.SelectSingleNode("//head/title")?.InnerText ?? string.Empty,
                 Description = doc.DocumentNode.SelectSingleNode("//head/meta[@name='description']")?.GetAttributeValue("content", "") ?? string.Empty,
-                ImageUrl = imageUrl ?? defaultImage,
+                ImageUrl = string.IsNullOrEmpty(imageUrl) ? defaultImage : imageUrl,
             };
 
         }
