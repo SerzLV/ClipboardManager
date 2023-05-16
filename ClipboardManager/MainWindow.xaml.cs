@@ -1,10 +1,5 @@
-﻿using System;
-using System.ComponentModel;
-using System.Runtime.InteropServices;
+﻿using System.ComponentModel;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Input;
-using System.Windows.Interop;
 using MahApps.Metro.Controls;
 
 namespace ClipboardManager
@@ -36,6 +31,12 @@ namespace ClipboardManager
         {
             var windowClipboardManager = new Helper.ClipboardManager(this);
             windowClipboardManager.ClipboardChanged += _mwvm.ClipboardContextChange;
+        }
+
+        private void MetroWindow_Closing(object sender, CancelEventArgs e)
+        {
+            this.Hide();
+            this._mwvm.SaveCommand.Execute(null);
         }
 
         //private void CreateTrayIconContextMenu()

@@ -1,11 +1,9 @@
-﻿using ClipboardManager.DB;
-using ClipboardManager.Helper;
+﻿using ClipboardManager.Helper;
 using ClipboardManager.ViewModel;
 using Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -101,7 +99,7 @@ public class MainWindowViewModel : BaseViewModel
             var fileName = Path.GetFileName(file);
             var filePath = Path.GetFullPath(file);
 
-            if (_copiedFiles.Any(x => x.Name == fileName)) continue;
+            if (Files.Any(x => x.Name == fileName)) continue;
 
             var fileInfo = new FileInfoModel
             {
@@ -122,7 +120,7 @@ public class MainWindowViewModel : BaseViewModel
 
         var text = Clipboard.GetText();
 
-        if (_copiedTexts.Any(x => x.Text == text) || _copiedUrls.Any(x => x.Url == text || x.Title == text)) return;
+        if (Texts.Any(x => x.Text == text) || Urls.Any(x => x.Url == text || x.Title == text)) return;
 
         var textInfo = new TextModel
         {
@@ -137,7 +135,7 @@ public class MainWindowViewModel : BaseViewModel
         foreach (Match match in urls)
         {
             var url = match.Value;
-            if (_copiedUrls.Any(x => x.Url == url)) continue;
+            if (Urls.Any(x => x.Url == url)) continue;
 
             var linksInfo = await LinkInformationExtractor.GetLinkInformationAsync(url);
 
@@ -153,7 +151,7 @@ public class MainWindowViewModel : BaseViewModel
     private void ProcessImage()
     {
         if (!Clipboard.ContainsImage()) return;
-        if (_copiedImages.Any(x => x.Name == imageName))
+        if (Images.Any(x => x.Name == imageName))
         {
             imageName = string.Empty;
             trigger = 1;

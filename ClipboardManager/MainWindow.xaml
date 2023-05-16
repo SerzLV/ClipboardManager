@@ -6,7 +6,7 @@
         xmlns:mah="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
         xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
         mc:Ignorable="d"
-        Title="Clipboard Monitor" Width="800" Height="600" Loaded="MetroWindow_Loaded">
+        Title="Clipboard Monitor" Width="800" Height="600" Loaded="MetroWindow_Loaded" Closing="MetroWindow_Closing">
     <mah:MetroWindow.Content>
         <Grid>
             <Grid.RowDefinitions>
@@ -14,8 +14,12 @@
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
             <StackPanel Orientation="Horizontal" Margin="10">
-                <Button Content="Save" Command="{Binding SaveCommand}" Margin="5"/>
-                <Button Content="Clear" Command="{Binding ClearCommand}" Margin="5"/>
+                <!--<Button Content="Save" 
+                        DockPanel.Dock="Right"
+                        Command="{Binding SaveCommand}" 
+                        Style="{StaticResource MahApps.Styles.SplitButton.Button.WindowCommands}" 
+                        Margin="5"/>-->
+                <!--<Button Content="Clear" Command="{Binding ClearCommand}" Margin="5"/>-->
             </StackPanel>
             <TabControl Grid.Row="1">
                 <TabItem Header="Files">
