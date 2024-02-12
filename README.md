@@ -8,7 +8,8 @@ Some screenshots from app:
 ![image](https://github.com/SerzLV/ClipboardManager/assets/42301342/cee6abef-350e-471e-a879-6865e3bf4a7f)
 ![image](https://github.com/SerzLV/ClipboardManager/assets/42301342/47c14c0f-f443-4352-8927-ec58eea2c00e)
 ![image](https://github.com/SerzLV/ClipboardManager/assets/42301342/f0e2b4fb-f5e8-4102-a647-29e456df6666)
-![image](https://github.com/SerzLV/ClipboardManager/assets/42301342/b2645612-a6df-44da-a31b-ba918d14694a)
+![image](https://github.com/SerzLV/ClipboardManager/assets/42301342/b2e51da5-5b52-4111-b032-13eeb5ef53ad)
+
 
 
 Plans for future:
