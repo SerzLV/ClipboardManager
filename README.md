@@ -23,3 +23,5 @@ Add search by text in all tabs or selected.
 Add "pin, favorite" to fast access.
 Export copied data.
 Update UI more user friendly. 
+
+https://www.buymeacoffee.com/serzlv
