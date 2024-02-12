@@ -10,14 +10,9 @@ namespace ClipboardManager.Helper
 
         public ClipboardManager(Window windowSource)
         {
-            HwndSource source = PresentationSource.FromVisual(windowSource) as HwndSource;
-            if (source == null)
-            {
-                throw new ArgumentException(
+            HwndSource source = PresentationSource.FromVisual(windowSource) as HwndSource ?? throw new ArgumentException(
                     "Window source MUST be initialized first, such as in the Window's OnSourceInitialized handler."
                     , nameof(windowSource));
-            }
-
             source.AddHook(WndProc);
 
             // get window handle for interop

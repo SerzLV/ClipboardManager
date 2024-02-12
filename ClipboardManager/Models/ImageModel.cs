@@ -1,6 +1,5 @@
 ﻿using System.Windows.Input;
 using System.Windows.Media.Imaging;
-using ClipboardManager.Helper;
 
 namespace Models
 {

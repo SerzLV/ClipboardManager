@@ -1,9 +1,4 @@
-﻿using ClipboardManager.Helper;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Windows.Input;
-using System.Windows.Media.Imaging;
+﻿using System.Windows.Input;
 
 namespace Models
 {
