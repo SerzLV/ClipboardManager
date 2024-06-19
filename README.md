@@ -24,4 +24,7 @@ Add "pin, favorite" to fast access.
 Export copied data.
 Update UI more user friendly. 
 
+!!!
+Can be downloaded and updated for any person. As author I don't take any responsibility of this product if any problems, lack will take place. When you download and use this application all responsibility is on Downloader/runner user/person/machine!
+
 <a href="https://www.buymeacoffee.com/serzlv" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: 41px !important;width: 174px !important;box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;" ></a>
