@@ -13,74 +13,60 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
-            <StackPanel Orientation="Horizontal" Margin="10">
-                <!--<Button Content="Save" 
-                        DockPanel.Dock="Right"
-                        Command="{Binding SaveCommand}" 
-                        Style="{StaticResource MahApps.Styles.SplitButton.Button.WindowCommands}" 
-                        Margin="5"/>-->
-                <!--<Button Content="Clear" Command="{Binding ClearCommand}" Margin="5"/>-->
-            </StackPanel>
             <TabControl Grid.Row="1">
                 <TabItem Header="Files">
                     <ListView ItemsSource="{Binding Files}">
                         <ListView.View>
                             <GridView>
-                                <GridViewColumn Header="Name">
+                                <GridViewColumn Header="Details">
                                     <GridViewColumn.CellTemplate>
                                         <DataTemplate>
-                                            <TextBlock Text="{Binding Name}" TextWrapping="Wrap" MaxWidth="250" FontWeight="Bold"/>
-                                        </DataTemplate>
-                                    </GridViewColumn.CellTemplate>
-                                </GridViewColumn>
-                                <GridViewColumn Header="File Path">
-                                    <GridViewColumn.CellTemplate>
-                                        <DataTemplate>
-                                            <TextBlock Text="{Binding FilePath}" TextWrapping="Wrap" MaxWidth="250" />
-                                        </DataTemplate>
-                                    </GridViewColumn.CellTemplate>
-                                </GridViewColumn>
-                                <GridViewColumn Header="Copy">
-                                    <GridViewColumn.CellTemplate>
-                                        <DataTemplate>
-                                            <Button Command="{Binding CopyCommand}" 
-                                                CommandParameter="{Binding}"
-                                                Width="30"
-                                                Height="30"
-                                                Margin="5"
-                                                BorderThickness="0">
-                                                <iconPacks:Material Kind="ContentCopy"/>
-                                            </Button>
-                                        </DataTemplate>
-                                    </GridViewColumn.CellTemplate>
-                                </GridViewColumn>
-                                <GridViewColumn Header="Open">
-                                    <GridViewColumn.CellTemplate>
-                                        <DataTemplate>
-                                            <Button Command="{Binding OpenFileCommand}" 
-                                                CommandParameter="{Binding}"
-                                                Width="30"
-                                                Height="30"
-                                                Margin="5"
-                                                Foreground="{DynamicResource MahApps.Brushes.Accent}"
-                                                BorderThickness="0">
-                                                <iconPacks:FontAwesome Kind="FileSolid"/>
-                                            </Button>
-                                        </DataTemplate>
-                                    </GridViewColumn.CellTemplate>
-                                </GridViewColumn>
-                                <GridViewColumn Header="Delete">
-                                    <GridViewColumn.CellTemplate>
-                                        <DataTemplate>
-                                            <Button Command="{Binding DeleteCommand}" 
-                                                CommandParameter="{Binding}"
-                                                Width="30"
-                                                Height="30"
-                                                Margin="5"
-                                                Foreground="DarkRed"
-                                                BorderThickness="0">
-                                                <iconPacks:Material Kind="Delete"/>
-                                            </Button>
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="3*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition/>
+                                                    <RowDefinition/>
+                                                </Grid.RowDefinitions>
+
+                                                <!-- Name and File Path on top -->
+                                                <StackPanel Grid.Column="0" Grid.Row="0" Orientation="Vertical" Margin="5">
+                                                    <TextBlock Text="{Binding Name}" TextWrapping="Wrap" FontWeight="Bold"/>
+                                                    <TextBlock Text="{Binding FilePath}" TextWrapping="Wrap" Margin="0,5,0,0"/>
+                                                </StackPanel>
+
+                                                <!-- Buttons on the right -->
+                                                <StackPanel Grid.Column="1" Grid.RowSpan="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0,0,0">
+                                                    <Button Command="{Binding CopyCommand}" 
+                                                        CommandParameter="{Binding}"
+                                                        Width="30"
+                                                        Height="30"
+                                                        Margin="5"
+                                                        BorderThickness="0">
+                                                        <iconPacks:Material Kind="ContentCopy"/>
+                                                    </Button>
+                                                    <Button Command="{Binding OpenFileCommand}" 
+                                                        CommandParameter="{Binding}"
+                                                        Width="30"
+                                                        Height="30"
+                                                        Margin="5"
+                                                        Foreground="{DynamicResource MahApps.Brushes.Accent}"
+                                                        BorderThickness="0">
+                                                        <iconPacks:FontAwesome Kind="FileSolid"/>
+                                                    </Button>
+                                                    <Button Command="{Binding DeleteCommand}" 
+                                                        CommandParameter="{Binding}"
+                                                        Width="30"
+                                                        Height="30"
+                                                        Margin="5"
+                                                        Foreground="DarkRed"
+                                                        BorderThickness="0">
+                                                        <iconPacks:Material Kind="Delete"/>
+                                                    </Button>
+                                                </StackPanel>
+                                            </Grid>
                                         </DataTemplate>
                                     </GridViewColumn.CellTemplate>
                                 </GridViewColumn>
@@ -136,73 +122,66 @@
                     <ListView ItemsSource="{Binding Urls}">
                         <ListView.View>
                             <GridView>
-                                <GridViewColumn Header="Image">
+                                <GridViewColumn Header="Details">
                                     <GridViewColumn.CellTemplate>
                                         <DataTemplate>
-                                            <Image Width="35" Height="35" Margin="5" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                <Image.Source>
-                                                    <BitmapImage UriSource="{Binding ImageUrl}" />
-                                                </Image.Source>
-                                            </Image>
-                                        </DataTemplate>
-                                    </GridViewColumn.CellTemplate>
-                                </GridViewColumn>
-                                <GridViewColumn Header="Url">
-                                    <GridViewColumn.CellTemplate>
-                                        <DataTemplate>
-                                            <TextBlock Text="{Binding Url}" TextWrapping="Wrap" MaxWidth="250" />
-                                        </DataTemplate>
-                                    </GridViewColumn.CellTemplate>
-                                </GridViewColumn>
-                                <GridViewColumn Header="Title">
-                                    <GridViewColumn.CellTemplate>
-                                        <DataTemplate>
-                                            <TextBlock Text="{Binding Title}" FontWeight="Bold" />
-                                        </DataTemplate>
-                                    </GridViewColumn.CellTemplate>
-                                </GridViewColumn>
-                                <GridViewColumn Header="Description" DisplayMemberBinding="{Binding Description}" />
-                                <GridViewColumn Header="Copy">
-                                    <GridViewColumn.CellTemplate>
-                                        <DataTemplate>
-                                            <Button Command="{Binding CopyCommand}" 
-                                                CommandParameter="{Binding}"
-                                                Width="30"
-                                                Height="30"
-                                                Margin="5"
-                                                BorderThickness="0">
-                                                <iconPacks:Material Kind="ContentCopy"/>
-                                            </Button>
-                                        </DataTemplate>
-                                    </GridViewColumn.CellTemplate>
-                                </GridViewColumn>
-                                <GridViewColumn Header="Open">
-                                    <GridViewColumn.CellTemplate>
-                                        <DataTemplate>
-                                            <Button Command="{Binding OpenLinkCommand}" 
-                                                CommandParameter="{Binding}"
-                                                Width="30"
-                                                Height="30"
-                                                Margin="5"
-                                                Foreground="{DynamicResource MahApps.Brushes.Accent}"
-                                                BorderThickness="0">
-                                                <iconPacks:FontAwesome Kind="InternetExplorerBrands"/>
-                                            </Button>
-                                        </DataTemplate>
-                                    </GridViewColumn.CellTemplate>
-                                </GridViewColumn>
-                                <GridViewColumn Header="Delete">
-                                    <GridViewColumn.CellTemplate>
-                                        <DataTemplate>
-                                            <Button Command="{Binding DeleteCommand}" 
-                                                CommandParameter="{Binding}"
-                                                Width="30"
-                                                Height="30"
-                                                Margin="5"
-                                                Foreground="DarkRed"
-                                                BorderThickness="0">
-                                                <iconPacks:Material Kind="Delete"/>
-                                            </Button>
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="3*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition/>
+                                                    <RowDefinition/>
+                                                    <RowDefinition/>
+                                                </Grid.RowDefinitions>
+
+                                                <!-- Image and URL on top -->
+                                                <StackPanel Grid.Column="0" Grid.Row="0" Orientation="Horizontal">
+                                                    <Image Width="35" Height="35" Margin="5" VerticalAlignment="Center">
+                                                        <Image.Source>
+                                                            <BitmapImage UriSource="{Binding ImageUrl}" />
+                                                        </Image.Source>
+                                                    </Image>
+                                                    <TextBlock Text="{Binding Url}" TextWrapping="Wrap" MaxWidth="250" Margin="5,0,0,0" VerticalAlignment="Center"/>
+                                                </StackPanel>
+
+                                                <!-- Title below -->
+                                                <TextBlock Grid.Column="0" Grid.Row="1" Text="{Binding Title}" FontWeight="Bold" Margin="5,5,0,0"/>
+
+                                                <!-- Description below Title -->
+                                                <TextBlock Grid.Column="0" Grid.Row="2" Text="{Binding Description}" TextWrapping="Wrap" Margin="5,5,0,0"/>
+
+                                                <!-- Buttons on the right -->
+                                                <StackPanel Grid.Column="1" Grid.RowSpan="3" Orientation="Vertical" VerticalAlignment="Center" Margin="10,0,0,0">
+                                                    <Button Command="{Binding CopyCommand}" 
+                                            CommandParameter="{Binding}"
+                                            Width="30"
+                                            Height="30"
+                                            Margin="5"
+                                            BorderThickness="0">
+                                                        <iconPacks:Material Kind="ContentCopy"/>
+                                                    </Button>
+                                                    <Button Command="{Binding OpenLinkCommand}" 
+                                            CommandParameter="{Binding}"
+                                            Width="30"
+                                            Height="30"
+                                            Margin="5"
+                                            Foreground="{DynamicResource MahApps.Brushes.Accent}"
+                                            BorderThickness="0">
+                                                        <iconPacks:FontAwesome Kind="InternetExplorerBrands"/>
+                                                    </Button>
+                                                    <Button Command="{Binding DeleteCommand}" 
+                                            CommandParameter="{Binding}"
+                                            Width="30"
+                                            Height="30"
+                                            Margin="5"
+                                            Foreground="DarkRed"
+                                            BorderThickness="0">
+                                                        <iconPacks:Material Kind="Delete"/>
+                                                    </Button>
+                                                </StackPanel>
+                                            </Grid>
                                         </DataTemplate>
                                     </GridViewColumn.CellTemplate>
                                 </GridViewColumn>
@@ -214,46 +193,52 @@
                     <ListView ItemsSource="{Binding Images}">
                         <ListView.View>
                             <GridView>
-                                <GridViewColumn Header="Name">
-                                    <GridViewColumn.CellTemplate>
-                                        <DataTemplate>
-                                            <TextBlock Text="{Binding Name}" TextWrapping="Wrap" MaxWidth="250" />
-                                        </DataTemplate>
-                                    </GridViewColumn.CellTemplate>
-                                </GridViewColumn>
                                 <GridViewColumn Header="Image">
                                     <GridViewColumn.CellTemplate>
                                         <DataTemplate>
-                                            <Image Width="450" Height="250" Source="{Binding ImageSource}"  Margin="5" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                        </DataTemplate>
-                                    </GridViewColumn.CellTemplate>
-                                </GridViewColumn>
-                                <GridViewColumn Header="Copy">
-                                    <GridViewColumn.CellTemplate>
-                                        <DataTemplate>
-                                            <Button Command="{Binding CopyCommand}" 
-                                                CommandParameter="{Binding}"
-                                                Width="30"
-                                                Height="30"
-                                                Margin="5"
-                                                BorderThickness="0">
-                                                <iconPacks:Material Kind="ContentCopy"/>
-                                            </Button>
-                                        </DataTemplate>
-                                    </GridViewColumn.CellTemplate>
-                                </GridViewColumn>
-                                <GridViewColumn Header="Delete">
-                                    <GridViewColumn.CellTemplate>
-                                        <DataTemplate>
-                                            <Button Command="{Binding DeleteCommand}" 
-                                                CommandParameter="{Binding}"
-                                                Width="30"
-                                                Height="30"
-                                                Margin="5"
-                                                Foreground="DarkRed"
-                                                BorderThickness="0">
-                                                <iconPacks:Material Kind="Delete"/>
-                                            </Button>
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="450"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+
+                                                <!-- Image with Tooltip -->
+                                                <Image Grid.Column="0"
+                                       Width="450" 
+                                       Height="250" 
+                                       Source="{Binding ImageSource}" 
+                                       Margin="5" 
+                                       HorizontalAlignment="Center" 
+                                       VerticalAlignment="Center">
+                                                    <Image.ToolTip>
+                                                        <ToolTip Content="{Binding Name}" />
+                                                    </Image.ToolTip>
+                                                </Image>
+
+                                                <!-- Buttons on the right -->
+                                                <StackPanel Grid.Column="1" 
+                                            Orientation="Horizontal" 
+                                            VerticalAlignment="Center" 
+                                            Margin="10,0,0,0">
+                                                    <Button Command="{Binding CopyCommand}" 
+                                            CommandParameter="{Binding}"
+                                            Width="30"
+                                            Height="30"
+                                            Margin="5"
+                                            BorderThickness="0">
+                                                        <iconPacks:Material Kind="ContentCopy"/>
+                                                    </Button>
+                                                    <Button Command="{Binding DeleteCommand}" 
+                                            CommandParameter="{Binding}"
+                                            Width="30"
+                                            Height="30"
+                                            Margin="5"
+                                            Foreground="DarkRed"
+                                            BorderThickness="0">
+                                                        <iconPacks:Material Kind="Delete"/>
+                                                    </Button>
+                                                </StackPanel>
+                                            </Grid>
                                         </DataTemplate>
                                     </GridViewColumn.CellTemplate>
                                 </GridViewColumn>

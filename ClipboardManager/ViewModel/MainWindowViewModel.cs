@@ -68,13 +68,13 @@ public class MainWindowViewModel : BaseViewModel
 
     private void AssignCommands<T>(IEnumerable<T> items, ICommand copyCommand, ICommand deleteCommand, Action<T, ICommand> assignCommand)
     {
-        PropertyInfo copyProp = typeof(T).GetProperty("CopyCommand");
-        PropertyInfo deleteProp = typeof(T).GetProperty("DeleteCommand");
+        PropertyInfo? copyProp = typeof(T).GetProperty("CopyCommand");
+        PropertyInfo? deleteProp = typeof(T).GetProperty("DeleteCommand");
 
         foreach (var item in items)
         {
-            copyProp.SetValue(item, copyCommand);
-            deleteProp.SetValue(item, deleteCommand);
+            copyProp?.SetValue(item, copyCommand);
+            deleteProp?.SetValue(item, deleteCommand);
             assignCommand(item, copyCommand);
         }
     }
