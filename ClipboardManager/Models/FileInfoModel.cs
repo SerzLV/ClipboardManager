@@ -1,6 +1,6 @@
 namespace ClipboardManager.Models;
 
-public sealed class FileInfoModel
+public sealed class FileInfoModel : ClipboardItemModel
 {
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;

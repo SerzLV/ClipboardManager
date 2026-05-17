@@ -1,7 +1,9 @@
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Threading;
+using ClipboardManager.Data;
 using ClipboardManager.Helper;
+using ClipboardManager.Services;
 using ClipboardManager.ViewModels;
 using MahApps.Metro.Controls;
 
@@ -9,7 +11,7 @@ namespace ClipboardManager;
 
 public partial class MainWindow : MetroWindow
 {
-    private readonly MainWindowViewModel _viewModel = new();
+    private readonly MainWindowViewModel _viewModel;
     private ClipboardWatcher? _clipboardWatcher;
     private bool _isCloseConfirmed;
     private bool _isSavingBeforeClose;
@@ -17,6 +19,7 @@ public partial class MainWindow : MetroWindow
     public MainWindow()
     {
         InitializeComponent();
+        _viewModel = CreateViewModel();
         DataContext = _viewModel;
     }
 
@@ -66,5 +69,15 @@ public partial class MainWindow : MetroWindow
 
         _isCloseConfirmed = true;
         Close();
+    }
+
+    private static MainWindowViewModel CreateViewModel()
+    {
+        return new MainWindowViewModel(
+            new ClipboardRepository(),
+            new LinkMetadataService(),
+            new ShellLauncher(),
+            new WpfClipboardService(),
+            new MessageBoxUserNotificationService());
     }
 }

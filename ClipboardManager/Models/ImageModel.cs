@@ -2,7 +2,7 @@ using System.Windows.Media.Imaging;
 
 namespace ClipboardManager.Models;
 
-public sealed class ImageModel
+public sealed class ImageModel : ClipboardItemModel
 {
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;

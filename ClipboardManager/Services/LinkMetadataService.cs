@@ -1,11 +1,17 @@
 using ClipboardManager.Models;
 using HtmlAgilityPack;
 using System.IO;
+using System.Net.Http;
 
 namespace ClipboardManager.Services;
 
 public sealed class LinkMetadataService : ILinkMetadataService
 {
+    private static readonly HttpClient HttpClient = new()
+    {
+        Timeout = TimeSpan.FromSeconds(5)
+    };
+
     private static readonly string DefaultImage = Path.Combine(
         AppContext.BaseDirectory,
         "Resources",
@@ -21,8 +27,23 @@ public sealed class LinkMetadataService : ILinkMetadataService
 
         try
         {
-            var web = new HtmlWeb();
-            var document = await web.LoadFromWebAsync(uri.ToString(), cancellationToken);
+            using var request = new HttpRequestMessage(HttpMethod.Get, uri);
+            request.Headers.UserAgent.ParseAdd("ClipboardManager/1.0");
+
+            using var response = await HttpClient.SendAsync(
+                request,
+                HttpCompletionOption.ResponseHeadersRead,
+                cancellationToken);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return CreateFallbackUrl(uri);
+            }
+
+            var html = await response.Content.ReadAsStringAsync(cancellationToken);
+            var document = new HtmlDocument();
+            document.LoadHtml(html);
+
             var imageUrl = document.DocumentNode
                 .SelectSingleNode("//head/meta[@property='og:image']")
                 ?.GetAttributeValue("content", string.Empty);
@@ -37,15 +58,24 @@ public sealed class LinkMetadataService : ILinkMetadataService
                 ImageUrl = ResolveImageUrl(uri, imageUrl)
             };
         }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
         catch
         {
-            return new UrlModel
-            {
-                Url = uri.ToString(),
-                Title = uri.Host,
-                ImageUrl = DefaultImage
-            };
+            return CreateFallbackUrl(uri);
         }
+    }
+
+    private static UrlModel CreateFallbackUrl(Uri uri)
+    {
+        return new UrlModel
+        {
+            Url = uri.ToString(),
+            Title = uri.Host,
+            ImageUrl = DefaultImage
+        };
     }
 
     private static bool TryCreateSupportedUri(string url, out Uri uri)

@@ -4,16 +4,12 @@ namespace ClipboardManager.Services;
 
 public interface IClipboardService
 {
-    ClipboardContentSignature? GetCurrentSignature();
-    bool ContainsFileDropList();
-    IReadOnlyList<string> GetFileDropList();
-    bool ContainsText();
-    string? GetText();
-    bool ContainsImage();
-    BitmapSource? GetImage();
-    ClipboardContentSignature SetFileDropList(IEnumerable<string> filePaths);
-    ClipboardContentSignature SetText(string text);
-    ClipboardContentSignature SetImage(BitmapSource image);
+    Task<ClipboardContentSnapshot?> GetCurrentSnapshotAsync(CancellationToken cancellationToken = default);
+    Task<ClipboardContentSignature> SetFileDropListAsync(
+        IEnumerable<string> filePaths,
+        CancellationToken cancellationToken = default);
+    Task<ClipboardContentSignature> SetTextAsync(string text, CancellationToken cancellationToken = default);
+    Task<ClipboardContentSignature> SetImageAsync(BitmapSource image, CancellationToken cancellationToken = default);
     ClipboardContentSignature CreateImageSignature(BitmapSource image);
 }
 
@@ -25,3 +21,10 @@ public enum ClipboardContentKind
 }
 
 public sealed record ClipboardContentSignature(ClipboardContentKind Kind, string Value);
+
+public sealed record ClipboardContentSnapshot(
+    ClipboardContentKind Kind,
+    ClipboardContentSignature Signature,
+    IReadOnlyList<string> FilePaths,
+    string? Text,
+    BitmapSource? Image);

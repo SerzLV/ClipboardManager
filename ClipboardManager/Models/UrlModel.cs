@@ -1,6 +1,6 @@
 namespace ClipboardManager.Models;
 
-public sealed class UrlModel
+public sealed class UrlModel : ClipboardItemModel
 {
     public int Id { get; set; }
     public string Url { get; set; } = string.Empty;

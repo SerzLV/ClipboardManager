@@ -16,6 +16,7 @@ public interface IClipboardRepository
     Task DeleteTextAsync(TextModel text, CancellationToken cancellationToken = default);
     Task DeleteImageAsync(ImageModel image, CancellationToken cancellationToken = default);
     Task DeleteUrlAsync(UrlModel url, CancellationToken cancellationToken = default);
+    Task UpdatePinAsync(IPinnedClipboardItem item, CancellationToken cancellationToken = default);
     Task ClearAsync(CancellationToken cancellationToken = default);
 }
 
@@ -64,6 +65,7 @@ public sealed class ClipboardRepository : IClipboardRepository
 
         await using var context = await CreateContextAsync(cancellationToken);
 
+        context.ChangeTracker.AutoDetectChangesEnabled = false;
         context.Files.AddRange(newFiles);
         context.Texts.AddRange(newTexts);
         context.Images.AddRange(newImages);
@@ -104,14 +106,56 @@ public sealed class ClipboardRepository : IClipboardRepository
             .ExecuteDeleteAsync(cancellationToken);
     }
 
+    public async Task UpdatePinAsync(
+        IPinnedClipboardItem item,
+        CancellationToken cancellationToken = default)
+    {
+        await using var context = await CreateContextAsync(cancellationToken);
+
+        switch (item)
+        {
+            case FileInfoModel file when file.Id != 0:
+                await context.Files
+                    .Where(x => x.Id == file.Id)
+                    .ExecuteUpdateAsync(
+                        setters => setters.SetProperty(x => x.IsPinned, file.IsPinned),
+                        cancellationToken);
+                break;
+            case TextModel text when text.Id != 0:
+                await context.Texts
+                    .Where(x => x.Id == text.Id)
+                    .ExecuteUpdateAsync(
+                        setters => setters.SetProperty(x => x.IsPinned, text.IsPinned),
+                        cancellationToken);
+                break;
+            case ImageModel image when image.Id != 0:
+                await context.Images
+                    .Where(x => x.Id == image.Id)
+                    .ExecuteUpdateAsync(
+                        setters => setters.SetProperty(x => x.IsPinned, image.IsPinned),
+                        cancellationToken);
+                break;
+            case UrlModel url when url.Id != 0:
+                await context.Urls
+                    .Where(x => x.Id == url.Id)
+                    .ExecuteUpdateAsync(
+                        setters => setters.SetProperty(x => x.IsPinned, url.IsPinned),
+                        cancellationToken);
+                break;
+        }
+    }
+
     public async Task ClearAsync(CancellationToken cancellationToken = default)
     {
         await using var context = await CreateContextAsync(cancellationToken);
+        await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
 
         await context.Files.ExecuteDeleteAsync(cancellationToken);
         await context.Texts.ExecuteDeleteAsync(cancellationToken);
         await context.Images.ExecuteDeleteAsync(cancellationToken);
         await context.Urls.ExecuteDeleteAsync(cancellationToken);
+
+        await transaction.CommitAsync(cancellationToken);
     }
 
     private static async Task<ClipboardDbContext> CreateContextAsync(CancellationToken cancellationToken)
@@ -146,6 +190,7 @@ public sealed class ClipboardRepository : IClipboardRepository
             if (!_databaseInitialized)
             {
                 await context.Database.EnsureCreatedAsync(cancellationToken);
+                await ConfigureDatabaseAsync(context, cancellationToken);
                 _databaseInitialized = true;
             }
         }
@@ -153,5 +198,86 @@ public sealed class ClipboardRepository : IClipboardRepository
         {
             DatabaseInitializationLock.Release();
         }
+    }
+
+    private static async Task ConfigureDatabaseAsync(
+        ClipboardDbContext context,
+        CancellationToken cancellationToken)
+    {
+        await context.Database.ExecuteSqlRawAsync("PRAGMA journal_mode=WAL;", cancellationToken);
+        await EnsurePinnedColumnAsync(context, "Files", cancellationToken);
+        await EnsurePinnedColumnAsync(context, "Texts", cancellationToken);
+        await EnsurePinnedColumnAsync(context, "Images", cancellationToken);
+        await EnsurePinnedColumnAsync(context, "Urls", cancellationToken);
+        await context.Database.ExecuteSqlRawAsync(
+            "CREATE INDEX IF NOT EXISTS IX_Files_FilePath ON Files (FilePath);",
+            cancellationToken);
+        await context.Database.ExecuteSqlRawAsync(
+            "CREATE INDEX IF NOT EXISTS IX_Urls_Url ON Urls (Url);",
+            cancellationToken);
+    }
+
+    private static async Task EnsurePinnedColumnAsync(
+        ClipboardDbContext context,
+        string tableName,
+        CancellationToken cancellationToken)
+    {
+        if (await ColumnExistsAsync(context, tableName, "IsPinned", cancellationToken))
+        {
+            return;
+        }
+
+        await context.Database.ExecuteSqlRawAsync(GetAddPinnedColumnSql(tableName), cancellationToken);
+    }
+
+    private static async Task<bool> ColumnExistsAsync(
+        ClipboardDbContext context,
+        string tableName,
+        string columnName,
+        CancellationToken cancellationToken)
+    {
+        var connection = context.Database.GetDbConnection();
+        var shouldClose = connection.State != System.Data.ConnectionState.Open;
+
+        if (shouldClose)
+        {
+            await connection.OpenAsync(cancellationToken);
+        }
+
+        try
+        {
+            using var command = connection.CreateCommand();
+            command.CommandText = $"PRAGMA table_info({tableName});";
+
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+            while (await reader.ReadAsync(cancellationToken))
+            {
+                if (string.Equals(reader.GetString(1), columnName, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+        finally
+        {
+            if (shouldClose)
+            {
+                await connection.CloseAsync();
+            }
+        }
+    }
+
+    private static string GetAddPinnedColumnSql(string tableName)
+    {
+        return tableName switch
+        {
+            "Files" => "ALTER TABLE Files ADD COLUMN IsPinned INTEGER NOT NULL DEFAULT 0;",
+            "Texts" => "ALTER TABLE Texts ADD COLUMN IsPinned INTEGER NOT NULL DEFAULT 0;",
+            "Images" => "ALTER TABLE Images ADD COLUMN IsPinned INTEGER NOT NULL DEFAULT 0;",
+            "Urls" => "ALTER TABLE Urls ADD COLUMN IsPinned INTEGER NOT NULL DEFAULT 0;",
+            _ => throw new ArgumentOutOfRangeException(nameof(tableName), tableName, "Unsupported table name.")
+        };
     }
 }

@@ -15,78 +15,60 @@ public sealed class WpfClipboardService : IClipboardService
     private const int RetryCount = 3;
     private static readonly TimeSpan RetryDelay = TimeSpan.FromMilliseconds(40);
 
-    public ClipboardContentSignature? GetCurrentSignature()
+    public async Task<ClipboardContentSnapshot?> GetCurrentSnapshotAsync(CancellationToken cancellationToken = default)
     {
-        if (ContainsFileDropList())
+        if (await ContainsFileDropListAsync(cancellationToken))
         {
-            var filePaths = GetFileDropList();
+            var filePaths = await GetFileDropListAsync(cancellationToken);
             if (filePaths.Count > 0)
             {
-                return CreateFileDropListSignature(filePaths);
+                return new ClipboardContentSnapshot(
+                    ClipboardContentKind.FileDropList,
+                    CreateFileDropListSignature(filePaths),
+                    filePaths,
+                    null,
+                    null);
             }
         }
 
-        if (ContainsImage())
+        if (await ContainsImageAsync(cancellationToken))
         {
-            var image = GetImage();
+            var image = await GetImageAsync(cancellationToken);
             if (image is not null)
             {
-                return CreateImageSignature(image);
+                var signature = image.IsFrozen
+                    ? await Task.Run(() => CreateImageSignature(image), cancellationToken)
+                    : CreateImageSignature(image);
+
+                return new ClipboardContentSnapshot(
+                    ClipboardContentKind.Image,
+                    signature,
+                    [],
+                    null,
+                    image);
             }
         }
 
-        if (ContainsText())
+        if (await ContainsTextAsync(cancellationToken))
         {
-            var text = GetText();
+            var text = await GetTextAsync(cancellationToken);
             if (!string.IsNullOrEmpty(text))
             {
-                return new ClipboardContentSignature(ClipboardContentKind.Text, text);
+                return new ClipboardContentSnapshot(
+                    ClipboardContentKind.Text,
+                    new ClipboardContentSignature(ClipboardContentKind.Text, text),
+                    [],
+                    text,
+                    null);
             }
         }
 
         return null;
     }
 
-    public bool ContainsFileDropList()
-    {
-        return ExecuteWithRetry(Clipboard.ContainsFileDropList);
-    }
-
-    public IReadOnlyList<string> GetFileDropList()
-    {
-        return ExecuteWithRetry(() => Clipboard.GetFileDropList().Cast<string>().ToArray());
-    }
-
-    public bool ContainsText()
-    {
-        return ExecuteWithRetry(Clipboard.ContainsText);
-    }
-
-    public string? GetText()
-    {
-        return ContainsText()
-            ? ExecuteWithRetry(Clipboard.GetText)
-            : null;
-    }
-
-    public bool ContainsImage()
-    {
-        return ExecuteWithRetry(Clipboard.ContainsImage);
-    }
-
-    public BitmapSource? GetImage()
-    {
-        if (!ContainsImage())
-        {
-            return null;
-        }
-
-        var image = ExecuteWithRetry(Clipboard.GetImage);
-        FreezeIfPossible(image);
-        return image;
-    }
-
-    public ClipboardContentSignature SetFileDropList(IEnumerable<string> filePaths)
+    public Task<ClipboardContentSignature> SetFileDropListAsync(
+        IEnumerable<string> filePaths,
+        CancellationToken cancellationToken = default)
     {
         var normalizedPaths = filePaths
             .Where(File.Exists)
@@ -102,20 +84,84 @@ public sealed class WpfClipboardService : IClipboardService
         var collection = new StringCollection();
         collection.AddRange(normalizedPaths);
 
-        ExecuteWithRetry(() => Clipboard.SetFileDropList(collection));
-        return CreateFileDropListSignature(normalizedPaths);
+        return ExecuteWithRetryAsync(
+            () =>
+            {
+                Clipboard.SetFileDropList(collection);
+                return CreateFileDropListSignature(normalizedPaths);
+            },
+            cancellationToken);
     }
 
-    public ClipboardContentSignature SetText(string text)
+    public Task<ClipboardContentSignature> SetTextAsync(
+        string text,
+        CancellationToken cancellationToken = default)
     {
-        ExecuteWithRetry(() => Clipboard.SetText(text));
-        return new ClipboardContentSignature(ClipboardContentKind.Text, text);
+        return ExecuteWithRetryAsync(
+            () =>
+            {
+                Clipboard.SetText(text);
+                return new ClipboardContentSignature(ClipboardContentKind.Text, text);
+            },
+            cancellationToken);
     }
 
-    public ClipboardContentSignature SetImage(BitmapSource image)
+    public Task<ClipboardContentSignature> SetImageAsync(
+        BitmapSource image,
+        CancellationToken cancellationToken = default)
     {
-        ExecuteWithRetry(() => Clipboard.SetImage(image));
-        return CreateImageSignature(image);
+        return SetImageCoreAsync(image, cancellationToken);
+    }
+
+    private async Task<ClipboardContentSignature> SetImageCoreAsync(
+        BitmapSource image,
+        CancellationToken cancellationToken)
+    {
+        await ExecuteWithRetryAsync(
+            () =>
+            {
+                Clipboard.SetImage(image);
+                return true;
+            },
+            cancellationToken);
+
+        return image.IsFrozen
+            ? await Task.Run(() => CreateImageSignature(image), cancellationToken)
+            : CreateImageSignature(image);
+    }
+
+    private static Task<bool> ContainsFileDropListAsync(CancellationToken cancellationToken)
+    {
+        return ExecuteWithRetryAsync(Clipboard.ContainsFileDropList, cancellationToken);
+    }
+
+    private static Task<IReadOnlyList<string>> GetFileDropListAsync(CancellationToken cancellationToken)
+    {
+        return ExecuteWithRetryAsync(
+            () => (IReadOnlyList<string>)Clipboard.GetFileDropList().Cast<string>().ToArray(),
+            cancellationToken);
+    }
+
+    private static Task<bool> ContainsTextAsync(CancellationToken cancellationToken)
+    {
+        return ExecuteWithRetryAsync(Clipboard.ContainsText, cancellationToken);
+    }
+
+    private static Task<string?> GetTextAsync(CancellationToken cancellationToken)
+    {
+        return ExecuteWithRetryAsync(() => (string?)Clipboard.GetText(), cancellationToken);
+    }
+
+    private static Task<bool> ContainsImageAsync(CancellationToken cancellationToken)
+    {
+        return ExecuteWithRetryAsync(Clipboard.ContainsImage, cancellationToken);
+    }
+
+    private static async Task<BitmapSource?> GetImageAsync(CancellationToken cancellationToken)
+    {
+        var image = await ExecuteWithRetryAsync(Clipboard.GetImage, cancellationToken);
+        FreezeIfPossible(image);
+        return image;
     }
 
     public ClipboardContentSignature CreateImageSignature(BitmapSource image)
@@ -161,30 +207,25 @@ public sealed class WpfClipboardService : IClipboardService
         return new ClipboardContentSignature(ClipboardContentKind.FileDropList, value);
     }
 
-    private static T ExecuteWithRetry<T>(Func<T> action)
+    private static async Task<T> ExecuteWithRetryAsync<T>(
+        Func<T> action,
+        CancellationToken cancellationToken)
     {
         for (var attempt = 1; attempt <= RetryCount; attempt++)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             try
             {
                 return action();
             }
             catch (Exception ex) when (IsTransientClipboardException(ex) && attempt < RetryCount)
             {
-                Thread.Sleep(RetryDelay);
+                await Task.Delay(RetryDelay, cancellationToken);
             }
         }
 
         return action();
-    }
-
-    private static void ExecuteWithRetry(Action action)
-    {
-        ExecuteWithRetry(() =>
-        {
-            action();
-            return true;
-        });
     }
 
     private static bool IsTransientClipboardException(Exception exception)

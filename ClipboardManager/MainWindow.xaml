@@ -5,6 +5,7 @@
                  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                  xmlns:mah="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
                  xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+                 xmlns:helper="clr-namespace:ClipboardManager.Helper"
                  mc:Ignorable="d"
                  Title="Clipboard Manager"
                  Width="1120"
@@ -131,6 +132,49 @@
             </Setter>
         </Style>
 
+        <Style x:Key="PinIconButtonStyle"
+               TargetType="{x:Type Button}"
+               BasedOn="{StaticResource IconButtonStyle}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsPinned}" Value="True">
+                    <Setter Property="Foreground" Value="{StaticResource AmberBrush}" />
+                    <Setter Property="Background" Value="{StaticResource AmberSoftBrush}" />
+                    <Setter Property="BorderBrush" Value="#F2D39A" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="ImagePreviewButtonStyle" TargetType="{x:Type Button}">
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="VerticalContentAlignment" Value="Stretch" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Border x:Name="Root"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Root" Property="Opacity" Value="0.88" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Root" Property="Opacity" Value="0.76" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <Style x:Key="DangerIconButtonStyle" TargetType="{x:Type Button}">
             <Setter Property="Width" Value="34" />
             <Setter Property="Height" Value="34" />
@@ -236,6 +280,10 @@
             <Setter Property="SnapsToDevicePixels" Value="True" />
         </Style>
 
+        <Style x:Key="ListCardBorderStyle" TargetType="{x:Type Border}" BasedOn="{StaticResource CardBorderStyle}">
+            <Setter Property="Effect" Value="{x:Null}" />
+        </Style>
+
         <Style x:Key="StatCardStyle" TargetType="{x:Type Border}" BasedOn="{StaticResource CardBorderStyle}">
             <Setter Property="Width" Value="255" />
             <Setter Property="Height" Value="80" />
@@ -251,6 +299,9 @@
             <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
             <Setter Property="VirtualizingPanel.IsVirtualizing" Value="True" />
             <Setter Property="VirtualizingPanel.VirtualizationMode" Value="Recycling" />
+            <Setter Property="VirtualizingPanel.ScrollUnit" Value="Pixel" />
+            <Setter Property="VirtualizingPanel.CacheLength" Value="1,1" />
+            <Setter Property="VirtualizingPanel.CacheLengthUnit" Value="Page" />
         </Style>
 
         <Style x:Key="CardListBoxItemStyle" TargetType="{x:Type ListBoxItem}">
@@ -274,6 +325,14 @@
                TargetType="{x:Type ListBoxItem}"
                BasedOn="{StaticResource CardListBoxItemStyle}">
             <Setter Property="Width" Value="272" />
+            <Setter Property="Margin" Value="0,0,12,12" />
+        </Style>
+
+        <Style x:Key="FavoriteTileListBoxItemStyle"
+               TargetType="{x:Type ListBoxItem}"
+               BasedOn="{StaticResource CardListBoxItemStyle}">
+            <Setter Property="Width" Value="326" />
+            <Setter Property="Height" Value="332" />
             <Setter Property="Margin" Value="0,0,12,12" />
         </Style>
 
@@ -369,8 +428,165 @@
             </Setter>
         </Style>
 
+        <DataTemplate x:Key="FavoriteItemTemplate">
+            <Border Style="{StaticResource ListCardBorderStyle}"
+                    Padding="12"
+                    Height="320"
+                    Margin="0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="118" />
+                        <RowDefinition Height="104" />
+                        <RowDefinition Height="58" />
+                    </Grid.RowDefinitions>
+
+                    <Button Command="{Binding DataContext.OpenImagePreviewCommand, RelativeSource={RelativeSource AncestorType={x:Type ListBox}}}"
+                            CommandParameter="{Binding}"
+                            Style="{StaticResource ImagePreviewButtonStyle}"
+                            Visibility="{Binding HasImagePreviewAction, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <Border Background="{StaticResource SurfaceAltBrush}"
+                                BorderBrush="{StaticResource StrokeBrush}"
+                                BorderThickness="1"
+                                CornerRadius="8"
+                                ClipToBounds="True">
+                            <Image Source="{Binding PreviewSource}"
+                                   Stretch="UniformToFill"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center" />
+                        </Border>
+                    </Button>
+
+                    <Border Background="{StaticResource SurfaceAltBrush}"
+                            BorderBrush="{StaticResource StrokeBrush}"
+                            BorderThickness="1"
+                            CornerRadius="8"
+                            ClipToBounds="True"
+                            Visibility="{Binding ShowsStaticImagePreview, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <Image Source="{Binding PreviewSource}"
+                               Stretch="UniformToFill"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center" />
+                    </Border>
+
+                    <Border Background="{StaticResource AmberSoftBrush}"
+                            BorderBrush="#F2D39A"
+                            BorderThickness="1"
+                            CornerRadius="8"
+                            Padding="12"
+                            Visibility="{Binding ShowsTextPreview, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <TextBlock Text="{Binding Description}"
+                                   Foreground="{StaticResource TextBrush}"
+                                   FontSize="13"
+                                   LineHeight="20"
+                                   MaxHeight="80"
+                                   TextWrapping="Wrap"
+                                   TextTrimming="CharacterEllipsis" />
+                    </Border>
+
+                    <Border Background="{StaticResource PrimarySoftBrush}"
+                            BorderBrush="#CBDDFE"
+                            BorderThickness="1"
+                            CornerRadius="8"
+                            Visibility="{Binding ShowsIconPreview, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <Grid>
+                            <Viewbox Width="34"
+                                     Height="34"
+                                     HorizontalAlignment="Center"
+                                     VerticalAlignment="Center">
+                                <iconPacks:Material Kind="Star" Width="34" Height="34" />
+                            </Viewbox>
+                        </Grid>
+                    </Border>
+
+                    <Grid Grid.Row="1" Margin="0,10,0,0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="24" />
+                            <RowDefinition Height="28" />
+                            <RowDefinition Height="42" />
+                        </Grid.RowDefinitions>
+
+                        <Border HorizontalAlignment="Left"
+                                Background="{StaticResource AmberSoftBrush}"
+                                BorderBrush="#F2D39A"
+                                BorderThickness="1"
+                                CornerRadius="8"
+                                Padding="8,3">
+                            <TextBlock Text="{Binding TypeLabel}"
+                                       Foreground="{StaticResource AmberBrush}"
+                                       FontSize="11"
+                                       FontWeight="SemiBold" />
+                        </Border>
+
+                        <TextBlock Grid.Row="1"
+                                   Text="{Binding Title}"
+                                   Margin="0,8,0,0"
+                                   FontSize="15"
+                                   FontWeight="SemiBold"
+                                   Foreground="{StaticResource TextBrush}"
+                                   TextTrimming="CharacterEllipsis" />
+
+                        <TextBlock Grid.Row="2"
+                                   Text="{Binding Subtitle}"
+                                   Margin="0,5,0,0"
+                                   MaxHeight="36"
+                                   Style="{StaticResource MutedTextStyle}"
+                                   TextWrapping="Wrap"
+                                   TextTrimming="CharacterEllipsis" />
+                    </Grid>
+
+                    <Border Grid.Row="2"
+                            Style="{StaticResource ActionGroupStyle}"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Top"
+                            Margin="0,12,0,0">
+                        <StackPanel Orientation="Horizontal">
+                            <Button DataContext="{Binding Source}"
+                                    Command="{Binding DataContext.TogglePinCommand, RelativeSource={RelativeSource AncestorType={x:Type ListBox}}}"
+                                    CommandParameter="{Binding}"
+                                    Style="{StaticResource PinIconButtonStyle}"
+                                    ToolTip="{Binding PinToolTip}">
+                                <Viewbox Width="18" Height="18">
+                                    <iconPacks:Material Kind="Star" Width="18" Height="18" />
+                                </Viewbox>
+                            </Button>
+                            <Button DataContext="{Binding Source}"
+                                    Command="{Binding DataContext.CopyCommand, RelativeSource={RelativeSource AncestorType={x:Type ListBox}}}"
+                                    CommandParameter="{Binding}"
+                                    Style="{StaticResource IconButtonStyle}"
+                                    Margin="2,0,0,0"
+                                    ToolTip="Копировать">
+                                <Viewbox Width="18" Height="18">
+                                    <iconPacks:Material Kind="ContentCopy" Width="18" Height="18" />
+                                </Viewbox>
+                            </Button>
+                            <Button Command="{Binding DataContext.OpenFavoriteCommand, RelativeSource={RelativeSource AncestorType={x:Type ListBox}}}"
+                                    CommandParameter="{Binding}"
+                                    Style="{StaticResource IconButtonStyle}"
+                                    Margin="2,0,0,0"
+                                    ToolTip="Открыть"
+                                    Visibility="{Binding HasOpenAction, Converter={StaticResource BoolToVisibilityConverter}}">
+                                <Viewbox Width="17" Height="17">
+                                    <iconPacks:Material Kind="OpenInNew" Width="17" Height="17" />
+                                </Viewbox>
+                            </Button>
+                            <Button DataContext="{Binding Source}"
+                                    Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource AncestorType={x:Type ListBox}}}"
+                                    CommandParameter="{Binding}"
+                                    Style="{StaticResource DangerIconButtonStyle}"
+                                    Margin="2,0,0,0"
+                                    ToolTip="Удалить">
+                                <Viewbox Width="18" Height="18">
+                                    <iconPacks:Material Kind="Delete" Width="18" Height="18" />
+                                </Viewbox>
+                            </Button>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </Border>
+        </DataTemplate>
+
         <DataTemplate x:Key="FileItemTemplate">
-            <Border Style="{StaticResource CardBorderStyle}">
+            <Border Style="{StaticResource ListCardBorderStyle}">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="48" />
@@ -408,9 +624,18 @@
                             Style="{StaticResource ActionGroupStyle}"
                             VerticalAlignment="Center">
                         <StackPanel Orientation="Horizontal">
+                            <Button Command="{Binding DataContext.TogglePinCommand, RelativeSource={RelativeSource AncestorType={x:Type ListBox}}}"
+                                    CommandParameter="{Binding}"
+                                    Style="{StaticResource PinIconButtonStyle}"
+                                    ToolTip="{Binding PinToolTip}">
+                                <Viewbox Width="18" Height="18">
+                                    <iconPacks:Material Kind="Star" Width="18" Height="18" />
+                                </Viewbox>
+                            </Button>
                             <Button Command="{Binding DataContext.CopyCommand, RelativeSource={RelativeSource AncestorType={x:Type ListBox}}}"
                                     CommandParameter="{Binding}"
                                     Style="{StaticResource IconButtonStyle}"
+                                    Margin="2,0,0,0"
                                     ToolTip="Копировать">
                                 <Viewbox Width="18" Height="18">
                                     <iconPacks:Material Kind="ContentCopy" Width="18" Height="18" />
@@ -441,7 +666,7 @@
         </DataTemplate>
 
         <DataTemplate x:Key="TextItemTemplate">
-            <Border Style="{StaticResource CardBorderStyle}">
+            <Border Style="{StaticResource ListCardBorderStyle}">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
@@ -461,9 +686,18 @@
                             Margin="18,0,0,0"
                             VerticalAlignment="Top">
                         <StackPanel Orientation="Horizontal">
+                            <Button Command="{Binding DataContext.TogglePinCommand, RelativeSource={RelativeSource AncestorType={x:Type ListBox}}}"
+                                    CommandParameter="{Binding}"
+                                    Style="{StaticResource PinIconButtonStyle}"
+                                    ToolTip="{Binding PinToolTip}">
+                                <Viewbox Width="18" Height="18">
+                                    <iconPacks:Material Kind="Star" Width="18" Height="18" />
+                                </Viewbox>
+                            </Button>
                             <Button Command="{Binding DataContext.CopyCommand, RelativeSource={RelativeSource AncestorType={x:Type ListBox}}}"
                                     CommandParameter="{Binding}"
                                     Style="{StaticResource IconButtonStyle}"
+                                    Margin="2,0,0,0"
                                     ToolTip="Копировать">
                                 <Viewbox Width="18" Height="18">
                                     <iconPacks:Material Kind="ContentCopy" Width="18" Height="18" />
@@ -485,7 +719,7 @@
         </DataTemplate>
 
         <DataTemplate x:Key="UrlItemTemplate">
-            <Border Style="{StaticResource CardBorderStyle}">
+            <Border Style="{StaticResource ListCardBorderStyle}">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="72" />
@@ -526,9 +760,18 @@
                             Style="{StaticResource ActionGroupStyle}"
                             VerticalAlignment="Top">
                         <StackPanel Orientation="Horizontal">
+                            <Button Command="{Binding DataContext.TogglePinCommand, RelativeSource={RelativeSource AncestorType={x:Type ListBox}}}"
+                                    CommandParameter="{Binding}"
+                                    Style="{StaticResource PinIconButtonStyle}"
+                                    ToolTip="{Binding PinToolTip}">
+                                <Viewbox Width="18" Height="18">
+                                    <iconPacks:Material Kind="Star" Width="18" Height="18" />
+                                </Viewbox>
+                            </Button>
                             <Button Command="{Binding DataContext.CopyCommand, RelativeSource={RelativeSource AncestorType={x:Type ListBox}}}"
                                     CommandParameter="{Binding}"
                                     Style="{StaticResource IconButtonStyle}"
+                                    Margin="2,0,0,0"
                                     ToolTip="Копировать">
                                 <Viewbox Width="18" Height="18">
                                     <iconPacks:Material Kind="ContentCopy" Width="18" Height="18" />
@@ -559,24 +802,29 @@
         </DataTemplate>
 
         <DataTemplate x:Key="ImageItemTemplate">
-            <Border Style="{StaticResource CardBorderStyle}" Padding="10">
+            <Border Style="{StaticResource ListCardBorderStyle}" Padding="10">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="156" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
-                    <Border Background="{StaticResource SurfaceAltBrush}"
-                            BorderBrush="{StaticResource StrokeBrush}"
-                            BorderThickness="1"
-                            CornerRadius="8"
-                            ClipToBounds="True">
-                        <Image Source="{Binding ImageSource}"
-                               Stretch="Uniform"
-                               HorizontalAlignment="Center"
-                               VerticalAlignment="Center"
-                               ToolTip="{Binding Name}" />
-                    </Border>
+                    <Button Command="{Binding DataContext.OpenImagePreviewCommand, RelativeSource={RelativeSource AncestorType={x:Type ListBox}}}"
+                            CommandParameter="{Binding}"
+                            Style="{StaticResource ImagePreviewButtonStyle}"
+                            ToolTip="Открыть">
+                        <Border Background="{StaticResource SurfaceAltBrush}"
+                                BorderBrush="{StaticResource StrokeBrush}"
+                                BorderThickness="1"
+                                CornerRadius="8"
+                                ClipToBounds="True">
+                            <Image Source="{Binding ImageSource}"
+                                   Stretch="Uniform"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   ToolTip="{Binding Name}" />
+                        </Border>
+                    </Button>
 
                     <Grid Grid.Row="1" Margin="2,10,2,0">
                         <Grid.ColumnDefinitions>
@@ -592,12 +840,30 @@
                         <Border Grid.Column="1"
                                 Style="{StaticResource ActionGroupStyle}">
                             <StackPanel Orientation="Horizontal">
+                                <Button Command="{Binding DataContext.TogglePinCommand, RelativeSource={RelativeSource AncestorType={x:Type ListBox}}}"
+                                        CommandParameter="{Binding}"
+                                        Style="{StaticResource PinIconButtonStyle}"
+                                        ToolTip="{Binding PinToolTip}">
+                                    <Viewbox Width="18" Height="18">
+                                        <iconPacks:Material Kind="Star" Width="18" Height="18" />
+                                    </Viewbox>
+                                </Button>
                                 <Button Command="{Binding DataContext.CopyCommand, RelativeSource={RelativeSource AncestorType={x:Type ListBox}}}"
                                         CommandParameter="{Binding}"
                                         Style="{StaticResource IconButtonStyle}"
+                                        Margin="2,0,0,0"
                                         ToolTip="Копировать">
                                     <Viewbox Width="18" Height="18">
                                         <iconPacks:Material Kind="ContentCopy" Width="18" Height="18" />
+                                    </Viewbox>
+                                </Button>
+                                <Button Command="{Binding DataContext.OpenImagePreviewCommand, RelativeSource={RelativeSource AncestorType={x:Type ListBox}}}"
+                                        CommandParameter="{Binding}"
+                                        Style="{StaticResource IconButtonStyle}"
+                                        Margin="2,0,0,0"
+                                        ToolTip="Открыть">
+                                    <Viewbox Width="17" Height="17">
+                                        <iconPacks:Material Kind="OpenInNew" Width="17" Height="17" />
                                     </Viewbox>
                                 </Button>
                                 <Button Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource AncestorType={x:Type ListBox}}}"
@@ -620,6 +886,7 @@
     <mah:MetroWindow.Content>
         <Grid Margin="24">
             <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
@@ -697,13 +964,108 @@
                 </Grid>
             </Border>
 
-            <WrapPanel Grid.Row="1"
-                       Margin="0,18,0,10"
+            <Border Grid.Row="1"
+                    Margin="0,18,0,0"
+                    Background="{StaticResource SurfaceBrush}"
+                    BorderBrush="{StaticResource StrokeBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="14,10">
+                <Grid MinHeight="30">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="28" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <Viewbox Width="17"
+                             Height="17"
+                             HorizontalAlignment="Left"
+                             VerticalAlignment="Center"
+                             Opacity="0.65">
+                        <iconPacks:Material Kind="Magnify" Width="17" Height="17" />
+                    </Viewbox>
+
+                    <Grid Grid.Column="1"
+                          VerticalAlignment="Center">
+                        <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                                 BorderThickness="0"
+                                 Background="Transparent"
+                                 Foreground="{StaticResource TextBrush}"
+                                 FontSize="14"
+                                 Padding="0"
+                                 VerticalContentAlignment="Center" />
+                        <TextBlock Text="Поиск по истории"
+                                   Foreground="{StaticResource MutedTextBrush}"
+                                   FontSize="14"
+                                   IsHitTestVisible="False"
+                                   VerticalAlignment="Center"
+                                   Visibility="{Binding IsSearchPlaceholderVisible, Converter={StaticResource BoolToVisibilityConverter}}" />
+                    </Grid>
+
+                    <TextBlock Grid.Column="2"
+                               Text="{Binding SearchResultText}"
+                               Margin="14,0,8,0"
+                               VerticalAlignment="Center"
+                               Style="{StaticResource MutedTextStyle}"
+                               Visibility="{Binding IsSearchActive, Converter={StaticResource BoolToVisibilityConverter}}" />
+
+                    <Button Grid.Column="3"
+                            Command="{Binding ClearSearchCommand}"
+                            Style="{StaticResource IconButtonStyle}"
+                            ToolTip="Очистить поиск"
+                            Visibility="{Binding IsSearchActive, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <Viewbox Width="16" Height="16">
+                            <iconPacks:Material Kind="Close" Width="16" Height="16" />
+                        </Viewbox>
+                    </Button>
+                </Grid>
+            </Border>
+
+            <WrapPanel Grid.Row="2"
+                       Margin="0,14,0,10"
                        ClipToBounds="False">
+                <RadioButton Style="{StaticResource SectionTabButtonStyle}"
+                             MinWidth="192"
+                             IsChecked="{Binding IsFavoritesSectionSelected, Mode=OneWay}"
+                             Command="{Binding SelectSectionCommand}"
+                             CommandParameter="0">
+                    <Grid ClipToBounds="False">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Border Style="{StaticResource SectionTabIconStyle}"
+                                Background="{StaticResource AmberSoftBrush}">
+                            <Grid>
+                                <Viewbox Width="15"
+                                         Height="15"
+                                         HorizontalAlignment="Center"
+                                         VerticalAlignment="Center">
+                                    <iconPacks:Material Kind="Star" Width="15" Height="15" />
+                                </Viewbox>
+                            </Grid>
+                        </Border>
+                        <TextBlock Grid.Column="1"
+                                   Text="Избранное"
+                                   Margin="10,0,0,0"
+                                   VerticalAlignment="Center" />
+                        <Border Grid.Column="2"
+                                Style="{StaticResource TabBadgeStyle}"
+                                Background="{StaticResource AmberSoftBrush}">
+                            <TextBlock Text="{Binding FavoriteCount, FallbackValue=0}"
+                                       Foreground="{StaticResource AmberBrush}"
+                                       Style="{StaticResource TabBadgeTextStyle}" />
+                        </Border>
+                    </Grid>
+                </RadioButton>
+
                 <RadioButton Style="{StaticResource SectionTabButtonStyle}"
                              IsChecked="{Binding IsFilesSectionSelected, Mode=OneWay}"
                              Command="{Binding SelectSectionCommand}"
-                             CommandParameter="0">
+                             CommandParameter="1">
                     <Grid ClipToBounds="False">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
@@ -738,7 +1100,7 @@
                 <RadioButton Style="{StaticResource SectionTabButtonStyle}"
                              IsChecked="{Binding IsTextsSectionSelected, Mode=OneWay}"
                              Command="{Binding SelectSectionCommand}"
-                             CommandParameter="1">
+                             CommandParameter="2">
                     <Grid ClipToBounds="False">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
@@ -774,7 +1136,7 @@
                              MinWidth="176"
                              IsChecked="{Binding IsUrlsSectionSelected, Mode=OneWay}"
                              Command="{Binding SelectSectionCommand}"
-                             CommandParameter="2">
+                             CommandParameter="3">
                     <Grid ClipToBounds="False">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
@@ -810,7 +1172,7 @@
                              MinWidth="224"
                              IsChecked="{Binding IsImagesSectionSelected, Mode=OneWay}"
                              Command="{Binding SelectSectionCommand}"
-                             CommandParameter="3">
+                             CommandParameter="4">
                     <Grid ClipToBounds="False">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
@@ -843,12 +1205,43 @@
                 </RadioButton>
             </WrapPanel>
 
-            <TabControl Grid.Row="2"
+            <TabControl Grid.Row="3"
                         Style="{StaticResource ModernTabControlStyle}"
                         SelectedIndex="{Binding SelectedSectionIndex, Mode=TwoWay}">
                 <TabItem>
                     <Grid>
-                        <ListBox ItemsSource="{Binding Files}"
+                        <ListBox ItemsSource="{Binding FavoritesView}"
+                                 ItemTemplate="{StaticResource FavoriteItemTemplate}"
+                                 ItemContainerStyle="{StaticResource FavoriteTileListBoxItemStyle}"
+                                 Style="{StaticResource ModernListBoxStyle}"
+                                 Visibility="{Binding HasFavorites, Converter={StaticResource BoolToVisibilityConverter}}">
+                            <ListBox.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel IsItemsHost="True" />
+                                </ItemsPanelTemplate>
+                            </ListBox.ItemsPanel>
+                        </ListBox>
+
+                        <Border Style="{StaticResource CardBorderStyle}"
+                                Visibility="{Binding IsFavoritesEmpty, Converter={StaticResource BoolToVisibilityConverter}}"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Top">
+                            <StackPanel>
+                                <TextBlock Text="{Binding FavoritesEmptyTitle}"
+                                           FontSize="18"
+                                           FontWeight="SemiBold"
+                                           Foreground="{StaticResource TextBrush}" />
+                                <TextBlock Text="{Binding FavoritesEmptyDescription}"
+                                           Margin="0,6,0,0"
+                                           Style="{StaticResource MutedTextStyle}" />
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </TabItem>
+
+                <TabItem>
+                    <Grid>
+                        <ListBox ItemsSource="{Binding FilesView}"
                                  ItemTemplate="{StaticResource FileItemTemplate}"
                                  ItemContainerStyle="{StaticResource CardListBoxItemStyle}"
                                  Style="{StaticResource ModernListBoxStyle}"
@@ -859,11 +1252,11 @@
                                 HorizontalAlignment="Stretch"
                                 VerticalAlignment="Top">
                             <StackPanel>
-                                <TextBlock Text="Файлов пока нет"
+                                <TextBlock Text="{Binding FilesEmptyTitle}"
                                            FontSize="18"
                                            FontWeight="SemiBold"
                                            Foreground="{StaticResource TextBrush}" />
-                                <TextBlock Text="Скопируйте файл в системе, и он появится здесь."
+                                <TextBlock Text="{Binding FilesEmptyDescription}"
                                            Margin="0,6,0,0"
                                            Style="{StaticResource MutedTextStyle}" />
                             </StackPanel>
@@ -873,7 +1266,7 @@
 
                 <TabItem>
                     <Grid>
-                        <ListBox ItemsSource="{Binding Texts}"
+                        <ListBox ItemsSource="{Binding TextsView}"
                                  ItemTemplate="{StaticResource TextItemTemplate}"
                                  ItemContainerStyle="{StaticResource CardListBoxItemStyle}"
                                  Style="{StaticResource ModernListBoxStyle}"
@@ -884,11 +1277,11 @@
                                 HorizontalAlignment="Stretch"
                                 VerticalAlignment="Top">
                             <StackPanel>
-                                <TextBlock Text="Текстовых записей пока нет"
+                                <TextBlock Text="{Binding TextsEmptyTitle}"
                                            FontSize="18"
                                            FontWeight="SemiBold"
                                            Foreground="{StaticResource TextBrush}" />
-                                <TextBlock Text="Скопируйте любой текст, чтобы добавить его в историю."
+                                <TextBlock Text="{Binding TextsEmptyDescription}"
                                            Margin="0,6,0,0"
                                            Style="{StaticResource MutedTextStyle}" />
                             </StackPanel>
@@ -898,7 +1291,7 @@
 
                 <TabItem>
                     <Grid>
-                        <ListBox ItemsSource="{Binding Urls}"
+                        <ListBox ItemsSource="{Binding UrlsView}"
                                  ItemTemplate="{StaticResource UrlItemTemplate}"
                                  ItemContainerStyle="{StaticResource CardListBoxItemStyle}"
                                  Style="{StaticResource ModernListBoxStyle}"
@@ -909,11 +1302,11 @@
                                 HorizontalAlignment="Stretch"
                                 VerticalAlignment="Top">
                             <StackPanel>
-                                <TextBlock Text="Ссылок пока нет"
+                                <TextBlock Text="{Binding UrlsEmptyTitle}"
                                            FontSize="18"
                                            FontWeight="SemiBold"
                                            Foreground="{StaticResource TextBrush}" />
-                                <TextBlock Text="Скопируйте URL, чтобы увидеть карточку ссылки."
+                                <TextBlock Text="{Binding UrlsEmptyDescription}"
                                            Margin="0,6,0,0"
                                            Style="{StaticResource MutedTextStyle}" />
                             </StackPanel>
@@ -923,7 +1316,7 @@
 
                 <TabItem>
                     <Grid>
-                        <ListBox ItemsSource="{Binding Images}"
+                        <ListBox ItemsSource="{Binding ImagesView}"
                                  ItemTemplate="{StaticResource ImageItemTemplate}"
                                  ItemContainerStyle="{StaticResource TileListBoxItemStyle}"
                                  Style="{StaticResource ModernListBoxStyle}"
@@ -940,11 +1333,11 @@
                                 HorizontalAlignment="Stretch"
                                 VerticalAlignment="Top">
                             <StackPanel>
-                                <TextBlock Text="Изображений пока нет"
+                                <TextBlock Text="{Binding ImagesEmptyTitle}"
                                            FontSize="18"
                                            FontWeight="SemiBold"
                                            Foreground="{StaticResource TextBrush}" />
-                                <TextBlock Text="Скопируйте картинку, чтобы добавить ее в галерею."
+                                <TextBlock Text="{Binding ImagesEmptyDescription}"
                                            Margin="0,6,0,0"
                                            Style="{StaticResource MutedTextStyle}" />
                             </StackPanel>
@@ -952,6 +1345,125 @@
                     </Grid>
                 </TabItem>
             </TabControl>
+
+            <Border Grid.RowSpan="4"
+                    Panel.ZIndex="50"
+                    Background="#B3111827"
+                    CornerRadius="8"
+                    Padding="28"
+                    Visibility="{Binding IsImagePreviewOpen, Converter={StaticResource BoolToVisibilityConverter}}">
+                <Border Background="{StaticResource SurfaceBrush}"
+                        BorderBrush="{StaticResource StrokeBrush}"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Padding="14"
+                        Effect="{StaticResource SoftShadow}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+
+                        <Grid Margin="2,0,2,12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="{Binding PreviewImageName}"
+                                           FontSize="16"
+                                           FontWeight="SemiBold"
+                                           Foreground="{StaticResource TextBrush}"
+                                           TextTrimming="CharacterEllipsis" />
+                                <TextBlock Text="{Binding PreviewZoomText}"
+                                           Margin="0,4,0,0"
+                                           Style="{StaticResource MutedTextStyle}" />
+                            </StackPanel>
+
+                            <Border Grid.Column="1"
+                                    Style="{StaticResource ActionGroupStyle}"
+                                    VerticalAlignment="Center">
+                                <StackPanel Orientation="Horizontal">
+                                    <Button Command="{Binding ZoomOutImageCommand}"
+                                            Style="{StaticResource IconButtonStyle}"
+                                            ToolTip="Уменьшить">
+                                        <TextBlock Text="-"
+                                                   FontSize="20"
+                                                   FontWeight="SemiBold"
+                                                   HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center" />
+                                    </Button>
+                                    <Button Command="{Binding ResetImageZoomCommand}"
+                                            Style="{StaticResource IconButtonStyle}"
+                                            Margin="2,0,0,0"
+                                            ToolTip="Сбросить масштаб">
+                                        <Viewbox Width="17" Height="17">
+                                            <iconPacks:Material Kind="Magnify" Width="17" Height="17" />
+                                        </Viewbox>
+                                    </Button>
+                                    <Button Command="{Binding ZoomInImageCommand}"
+                                            Style="{StaticResource IconButtonStyle}"
+                                            Margin="2,0,0,0"
+                                            ToolTip="Увеличить">
+                                        <TextBlock Text="+"
+                                                   FontSize="18"
+                                                   FontWeight="SemiBold"
+                                                   HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center" />
+                                    </Button>
+                                    <Button Command="{Binding CopyCommand}"
+                                            CommandParameter="{Binding PreviewImage}"
+                                            Style="{StaticResource IconButtonStyle}"
+                                            Margin="2,0,0,0"
+                                            ToolTip="Копировать">
+                                        <Viewbox Width="18" Height="18">
+                                            <iconPacks:Material Kind="ContentCopy" Width="18" Height="18" />
+                                        </Viewbox>
+                                    </Button>
+                                    <Button Command="{Binding CloseImagePreviewCommand}"
+                                            Style="{StaticResource DangerIconButtonStyle}"
+                                            Margin="2,0,0,0"
+                                            ToolTip="Закрыть">
+                                        <Viewbox Width="18" Height="18">
+                                            <iconPacks:Material Kind="Close" Width="18" Height="18" />
+                                        </Viewbox>
+                                    </Button>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+
+                        <Border Grid.Row="1"
+                                Background="{StaticResource SurfaceAltBrush}"
+                                BorderBrush="{StaticResource StrokeBrush}"
+                                BorderThickness="1"
+                                CornerRadius="8"
+                                ClipToBounds="True">
+                            <ScrollViewer HorizontalScrollBarVisibility="Auto"
+                                          VerticalScrollBarVisibility="Auto"
+                                          PanningMode="Both"
+                                          helper:ScrollViewerPanBehavior.IsEnabled="True"
+                                          helper:MouseWheelCommandBehavior.WheelUpCommand="{Binding ZoomInImageCommand}"
+                                          helper:MouseWheelCommandBehavior.WheelDownCommand="{Binding ZoomOutImageCommand}">
+                                <Grid MinHeight="420"
+                                      HorizontalAlignment="Center"
+                                      VerticalAlignment="Center">
+                                    <Image Source="{Binding PreviewImageSource}"
+                                           Stretch="None"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"
+                                           RenderOptions.BitmapScalingMode="HighQuality">
+                                        <Image.LayoutTransform>
+                                            <ScaleTransform ScaleX="{Binding PreviewZoom}"
+                                                            ScaleY="{Binding PreviewZoom}" />
+                                        </Image.LayoutTransform>
+                                    </Image>
+                                </Grid>
+                            </ScrollViewer>
+                        </Border>
+                    </Grid>
+                </Border>
+            </Border>
         </Grid>
     </mah:MetroWindow.Content>
 </mah:MetroWindow>

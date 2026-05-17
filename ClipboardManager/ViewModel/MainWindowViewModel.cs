@@ -1,10 +1,10 @@
-using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Globalization;
 using System.IO;
 using System.Text.RegularExpressions;
-using System.Windows;
 using System.Windows.Input;
+using System.Windows.Data;
 using ClipboardManager.Data;
 using ClipboardManager.Helper;
 using ClipboardManager.Models;
@@ -14,12 +14,16 @@ namespace ClipboardManager.ViewModels;
 
 public sealed class MainWindowViewModel : BaseViewModel
 {
+    private const double MinImagePreviewZoom = 0.25;
+    private const double MaxImagePreviewZoom = 4.0;
+    private const double ImagePreviewZoomStep = 0.25;
     private static readonly Regex UrlRegex = new(@"\b(?:https?://|www\.)\S+\b", RegexOptions.Compiled);
 
     private readonly IClipboardRepository _repository;
     private readonly ILinkMetadataService _linkMetadataService;
     private readonly IShellLauncher _shellLauncher;
     private readonly IClipboardService _clipboardService;
+    private readonly IUserNotificationService _notificationService;
     private readonly ClipboardChangeSuppressor _clipboardChangeSuppressor = new();
     private readonly SemaphoreSlim _clipboardLock = new(1, 1);
     private readonly SemaphoreSlim _persistenceLock = new(1, 1);
@@ -29,41 +33,72 @@ public sealed class MainWindowViewModel : BaseViewModel
     private bool _isBusy;
     private int _selectedSectionIndex;
     private string _statusText = "Мониторинг буфера обмена активен";
+    private string _searchText = string.Empty;
+    private ImageModel? _previewImage;
+    private object? _previewImageSource;
+    private string _previewImageName = string.Empty;
+    private double _previewZoom = 1.0;
+    private bool _isImagePreviewOpen;
     private DateTime? _lastActivityAt;
-
-    public MainWindowViewModel()
-        : this(new ClipboardRepository(), new LinkMetadataService(), new ShellLauncher(), new WpfClipboardService())
-    {
-    }
+    private int _filteredFileCount;
+    private int _filteredTextCount;
+    private int _filteredUrlCount;
+    private int _filteredImageCount;
+    private int _filteredFavoriteCount;
 
     public MainWindowViewModel(
         IClipboardRepository repository,
         ILinkMetadataService linkMetadataService,
         IShellLauncher shellLauncher,
-        IClipboardService clipboardService)
+        IClipboardService clipboardService,
+        IUserNotificationService notificationService)
     {
         _repository = repository;
         _linkMetadataService = linkMetadataService;
         _shellLauncher = shellLauncher;
         _clipboardService = clipboardService;
+        _notificationService = notificationService;
 
         ClearCommand = new AsyncRelayCommand(_ => ClearAsync(), _ => HasClipboardItems());
-        CopyCommand = new RelayCommand(Copy, CanCopy);
+        CopyCommand = new AsyncRelayCommand(CopyAsync, CanCopy);
         DeleteCommand = new AsyncRelayCommand(DeleteAsync, CanDelete);
+        TogglePinCommand = new AsyncRelayCommand(TogglePinAsync, CanTogglePin);
         OpenLinkCommand = new RelayCommand(OpenLink, CanOpenLink);
         OpenFileCommand = new RelayCommand(OpenFile, CanOpenFile);
+        OpenFavoriteCommand = new RelayCommand(OpenFavorite, CanOpenFavorite);
+        OpenImagePreviewCommand = new RelayCommand(OpenImagePreview, CanOpenImagePreview);
+        CloseImagePreviewCommand = new RelayCommand(_ => CloseImagePreview(), _ => IsImagePreviewOpen);
+        ZoomInImageCommand = new RelayCommand(_ => ZoomImage(ImagePreviewZoomStep), _ => CanZoomInImage());
+        ZoomOutImageCommand = new RelayCommand(_ => ZoomImage(-ImagePreviewZoomStep), _ => CanZoomOutImage());
+        ResetImageZoomCommand = new RelayCommand(_ => PreviewZoom = 1.0, _ => IsImagePreviewOpen && Math.Abs(PreviewZoom - 1.0) > 0.001);
         SelectSectionCommand = new RelayCommand(SelectSection);
+        ClearSearchCommand = new RelayCommand(_ => SearchText = string.Empty, _ => IsSearchActive);
+
+        FilesView = CreateClipboardView(Files, MatchesFile);
+        TextsView = CreateClipboardView(Texts, MatchesText);
+        UrlsView = CreateClipboardView(Urls, MatchesUrl);
+        ImagesView = CreateClipboardView(Images, MatchesImage);
+        FavoritesView = CreateFavoritesView();
 
         Files.CollectionChanged += ClipboardCollectionChanged;
         Texts.CollectionChanged += ClipboardCollectionChanged;
         Urls.CollectionChanged += ClipboardCollectionChanged;
         Images.CollectionChanged += ClipboardCollectionChanged;
+
+        RefreshFilteredCounts();
     }
 
-    public ObservableCollection<FileInfoModel> Files { get; } = [];
-    public ObservableCollection<TextModel> Texts { get; } = [];
-    public ObservableCollection<UrlModel> Urls { get; } = [];
-    public ObservableCollection<ImageModel> Images { get; } = [];
+    public ObservableRangeCollection<FileInfoModel> Files { get; } = [];
+    public ObservableRangeCollection<TextModel> Texts { get; } = [];
+    public ObservableRangeCollection<UrlModel> Urls { get; } = [];
+    public ObservableRangeCollection<ImageModel> Images { get; } = [];
+    public ObservableRangeCollection<FavoriteClipboardItem> Favorites { get; } = [];
+
+    public ICollectionView FilesView { get; }
+    public ICollectionView TextsView { get; }
+    public ICollectionView UrlsView { get; }
+    public ICollectionView ImagesView { get; }
+    public ICollectionView FavoritesView { get; }
 
     public int SelectedSectionIndex
     {
@@ -81,13 +116,15 @@ public sealed class MainWindowViewModel : BaseViewModel
             OnPropertyChanged(nameof(IsTextsSectionSelected));
             OnPropertyChanged(nameof(IsUrlsSectionSelected));
             OnPropertyChanged(nameof(IsImagesSectionSelected));
+            OnPropertyChanged(nameof(IsFavoritesSectionSelected));
         }
     }
 
-    public bool IsFilesSectionSelected => SelectedSectionIndex == 0;
-    public bool IsTextsSectionSelected => SelectedSectionIndex == 1;
-    public bool IsUrlsSectionSelected => SelectedSectionIndex == 2;
-    public bool IsImagesSectionSelected => SelectedSectionIndex == 3;
+    public bool IsFavoritesSectionSelected => SelectedSectionIndex == 0;
+    public bool IsFilesSectionSelected => SelectedSectionIndex == 1;
+    public bool IsTextsSectionSelected => SelectedSectionIndex == 2;
+    public bool IsUrlsSectionSelected => SelectedSectionIndex == 3;
+    public bool IsImagesSectionSelected => SelectedSectionIndex == 4;
 
     public string StatusText
     {
@@ -124,30 +161,103 @@ public sealed class MainWindowViewModel : BaseViewModel
         ? "Пока нет новых записей"
         : $"Последнее обновление: {LastActivityAt:HH:mm:ss}";
 
-    public int FileCount => Files.Count;
-    public int TextCount => Texts.Count;
-    public int UrlCount => Urls.Count;
-    public int ImageCount => Images.Count;
-    public int TotalCount => FileCount + TextCount + UrlCount + ImageCount;
+    public string SearchText
+    {
+        get => _searchText;
+        set
+        {
+            var normalizedValue = value ?? string.Empty;
+            if (_searchText == normalizedValue)
+            {
+                return;
+            }
 
+            _searchText = normalizedValue;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(IsSearchActive));
+            OnPropertyChanged(nameof(IsSearchPlaceholderVisible));
+            OnPropertyChanged(nameof(SearchResultText));
+            OnPropertyChanged(nameof(FilesEmptyTitle));
+            OnPropertyChanged(nameof(FilesEmptyDescription));
+            OnPropertyChanged(nameof(FavoritesEmptyTitle));
+            OnPropertyChanged(nameof(FavoritesEmptyDescription));
+            OnPropertyChanged(nameof(TextsEmptyTitle));
+            OnPropertyChanged(nameof(TextsEmptyDescription));
+            OnPropertyChanged(nameof(UrlsEmptyTitle));
+            OnPropertyChanged(nameof(UrlsEmptyDescription));
+            OnPropertyChanged(nameof(ImagesEmptyTitle));
+            OnPropertyChanged(nameof(ImagesEmptyDescription));
+
+            RefreshClipboardViews();
+            CommandManager.InvalidateRequerySuggested();
+        }
+    }
+
+    public bool IsSearchActive => !string.IsNullOrWhiteSpace(SearchText);
+    public bool IsSearchPlaceholderVisible => !IsSearchActive;
+
+    public string SearchResultText => IsSearchActive
+        ? $"Найдено: {FilteredTotalCount} из {HistoryTotalCount}"
+        : string.Empty;
+
+    public int FileCount => IsSearchActive ? _filteredFileCount : Files.Count;
+    public int TextCount => IsSearchActive ? _filteredTextCount : Texts.Count;
+    public int UrlCount => IsSearchActive ? _filteredUrlCount : Urls.Count;
+    public int ImageCount => IsSearchActive ? _filteredImageCount : Images.Count;
+    public int FavoriteCount => IsSearchActive ? _filteredFavoriteCount : Favorites.Count;
+    public int TotalCount => HistoryTotalCount;
+    public int FilteredTotalCount => _filteredFileCount + _filteredTextCount + _filteredUrlCount + _filteredImageCount;
+    public int HistoryTotalCount => Files.Count + Texts.Count + Urls.Count + Images.Count;
+
+    public bool HasFavorites => FavoriteCount > 0;
     public bool HasFiles => FileCount > 0;
     public bool HasTexts => TextCount > 0;
     public bool HasUrls => UrlCount > 0;
     public bool HasImages => ImageCount > 0;
-    public bool HasItems => TotalCount > 0;
+    public bool HasItems => HistoryTotalCount > 0;
 
+    public bool IsFavoritesEmpty => !HasFavorites;
     public bool IsFilesEmpty => !HasFiles;
     public bool IsTextsEmpty => !HasTexts;
     public bool IsUrlsEmpty => !HasUrls;
     public bool IsImagesEmpty => !HasImages;
     public bool IsHistoryEmpty => !HasItems;
 
+    public string FavoritesEmptyTitle => IsSearchActive ? "В избранном ничего не найдено" : "Избранного пока нет";
+    public string FavoritesEmptyDescription => IsSearchActive
+        ? "Попробуйте другой запрос или посмотрите исходные вкладки."
+        : "Нажмите звезду на важной записи, чтобы она появилась здесь.";
+    public string FilesEmptyTitle => IsSearchActive ? "В файлах ничего не найдено" : "Файлов пока нет";
+    public string FilesEmptyDescription => IsSearchActive
+        ? "Попробуйте другой запрос или проверьте соседние разделы."
+        : "Скопируйте файл в системе, и он появится здесь.";
+    public string TextsEmptyTitle => IsSearchActive ? "В тексте ничего не найдено" : "Текстовых записей пока нет";
+    public string TextsEmptyDescription => IsSearchActive
+        ? "Поиск проверяет содержимое сохраненных текстовых фрагментов."
+        : "Скопируйте любой текст, чтобы добавить его в историю.";
+    public string UrlsEmptyTitle => IsSearchActive ? "В ссылках ничего не найдено" : "Ссылок пока нет";
+    public string UrlsEmptyDescription => IsSearchActive
+        ? "Поиск идет по адресу, заголовку и описанию ссылки."
+        : "Скопируйте URL, чтобы увидеть карточку ссылки.";
+    public string ImagesEmptyTitle => IsSearchActive ? "В изображениях ничего не найдено" : "Изображений пока нет";
+    public string ImagesEmptyDescription => IsSearchActive
+        ? "Для изображений поиск проверяет имя сохраненной записи."
+        : "Скопируйте картинку, чтобы добавить ее в галерею.";
+
     public ICommand ClearCommand { get; }
     public ICommand CopyCommand { get; }
     public ICommand DeleteCommand { get; }
+    public ICommand TogglePinCommand { get; }
     public ICommand OpenLinkCommand { get; }
     public ICommand OpenFileCommand { get; }
+    public ICommand OpenFavoriteCommand { get; }
+    public ICommand OpenImagePreviewCommand { get; }
+    public ICommand CloseImagePreviewCommand { get; }
+    public ICommand ZoomInImageCommand { get; }
+    public ICommand ZoomOutImageCommand { get; }
+    public ICommand ResetImageZoomCommand { get; }
     public ICommand SelectSectionCommand { get; }
+    public ICommand ClearSearchCommand { get; }
 
     public bool IsBusy
     {
@@ -164,24 +274,107 @@ public sealed class MainWindowViewModel : BaseViewModel
         }
     }
 
+    public ImageModel? PreviewImage
+    {
+        get => _previewImage;
+        private set
+        {
+            if (_previewImage == value)
+            {
+                return;
+            }
+
+            _previewImage = value;
+            OnPropertyChanged();
+        }
+    }
+
+    public object? PreviewImageSource
+    {
+        get => _previewImageSource;
+        private set
+        {
+            if (_previewImageSource == value)
+            {
+                return;
+            }
+
+            _previewImageSource = value;
+            OnPropertyChanged();
+        }
+    }
+
+    public string PreviewImageName
+    {
+        get => _previewImageName;
+        private set
+        {
+            if (_previewImageName == value)
+            {
+                return;
+            }
+
+            _previewImageName = value;
+            OnPropertyChanged();
+        }
+    }
+
+    public double PreviewZoom
+    {
+        get => _previewZoom;
+        private set
+        {
+            var boundedValue = Math.Clamp(value, MinImagePreviewZoom, MaxImagePreviewZoom);
+            if (Math.Abs(_previewZoom - boundedValue) < 0.001)
+            {
+                return;
+            }
+
+            _previewZoom = boundedValue;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(PreviewZoomText));
+            CommandManager.InvalidateRequerySuggested();
+        }
+    }
+
+    public string PreviewZoomText => $"{PreviewZoom:P0}";
+
+    public bool IsImagePreviewOpen
+    {
+        get => _isImagePreviewOpen;
+        private set
+        {
+            if (_isImagePreviewOpen == value)
+            {
+                return;
+            }
+
+            _isImagePreviewOpen = value;
+            OnPropertyChanged();
+            CommandManager.InvalidateRequerySuggested();
+        }
+    }
+
     public async Task LoadAsync(CancellationToken cancellationToken = default)
     {
         await RunBusyAsync(async () =>
         {
             var data = await _repository.LoadAsync(cancellationToken);
+            var imageHashes = await PrepareLoadedImagesAsync(data.Images, cancellationToken);
 
-            Files.ReplaceWith(data.Files);
-            Texts.ReplaceWith(data.Texts);
-            Urls.ReplaceWith(data.Urls);
+            Files.ReplaceRange(data.Files);
+            Texts.ReplaceRange(data.Texts);
+            Urls.ReplaceRange(data.Urls);
             _knownImageHashes.Clear();
 
-            foreach (var image in data.Images)
+            foreach (var imageHash in imageHashes)
             {
-                image.ImageSource = BitmapSourceExtensions.ByteArrayToBitmapSource(image.ImageData);
-                AddKnownImageHash(image);
+                _knownImageHashes.Add(imageHash);
             }
 
-            Images.ReplaceWith(data.Images);
+            Images.ReplaceRange(data.Images);
+            RebuildFavorites();
+            RefreshClipboardViews();
             StatusText = HasItems
                 ? $"История загружена: {TotalCount} элементов"
                 : "История пуста, можно копировать новые данные";
@@ -195,12 +388,13 @@ public sealed class MainWindowViewModel : BaseViewModel
 
         try
         {
-            var signature = _clipboardService.GetCurrentSignature();
-            if (signature is null)
+            var snapshot = await _clipboardService.GetCurrentSnapshotAsync(cancellationToken);
+            if (snapshot is null)
             {
                 return;
             }
 
+            var signature = snapshot.Signature;
             if (_clipboardChangeSuppressor.ShouldSuppress(signature))
             {
                 _lastHandledClipboardSignature = signature;
@@ -219,13 +413,13 @@ public sealed class MainWindowViewModel : BaseViewModel
             switch (signature.Kind)
             {
                 case ClipboardContentKind.FileDropList:
-                    ProcessFileDropList(addedItems);
+                    ProcessFileDropList(snapshot, addedItems);
                     break;
                 case ClipboardContentKind.Text:
-                    await ProcessTextAsync(addedItems, cancellationToken);
+                    await ProcessTextAsync(snapshot, addedItems, cancellationToken);
                     break;
                 case ClipboardContentKind.Image:
-                    ProcessImage(signature, addedItems);
+                    ProcessImage(snapshot, addedItems);
                     break;
             }
 
@@ -262,14 +456,11 @@ public sealed class MainWindowViewModel : BaseViewModel
         }
     }
 
-    private void ProcessFileDropList(ClipboardItemsBatch addedItems)
+    private void ProcessFileDropList(
+        ClipboardContentSnapshot snapshot,
+        ClipboardItemsBatch addedItems)
     {
-        if (!_clipboardService.ContainsFileDropList())
-        {
-            return;
-        }
-
-        foreach (var file in _clipboardService.GetFileDropList())
+        foreach (var file in snapshot.FilePaths)
         {
             if (!File.Exists(file))
             {
@@ -293,14 +484,12 @@ public sealed class MainWindowViewModel : BaseViewModel
         }
     }
 
-    private async Task ProcessTextAsync(ClipboardItemsBatch addedItems, CancellationToken cancellationToken)
+    private async Task ProcessTextAsync(
+        ClipboardContentSnapshot snapshot,
+        ClipboardItemsBatch addedItems,
+        CancellationToken cancellationToken)
     {
-        if (!_clipboardService.ContainsText())
-        {
-            return;
-        }
-
-        var text = _clipboardService.GetText();
+        var text = snapshot.Text;
         if (string.IsNullOrWhiteSpace(text))
         {
             return;
@@ -334,24 +523,15 @@ public sealed class MainWindowViewModel : BaseViewModel
         }
     }
 
-    private void ProcessImage(ClipboardContentSignature currentSignature, ClipboardItemsBatch addedItems)
+    private void ProcessImage(ClipboardContentSnapshot snapshot, ClipboardItemsBatch addedItems)
     {
-        if (!_clipboardService.ContainsImage())
-        {
-            return;
-        }
-
-        var image = _clipboardService.GetImage();
+        var image = snapshot.Image;
         if (image is null)
         {
             return;
         }
 
-        var imageSignature = currentSignature.Kind == ClipboardContentKind.Image
-            ? currentSignature
-            : _clipboardService.CreateImageSignature(image);
-
-        if (!_knownImageHashes.Add(imageSignature.Value))
+        if (!_knownImageHashes.Add(snapshot.Signature.Value))
         {
             return;
         }
@@ -437,6 +617,10 @@ public sealed class MainWindowViewModel : BaseViewModel
                                 await _repository.DeleteImageAsync(image);
                             }
                             Images.Remove(image);
+                            if (ReferenceEquals(PreviewImage, image))
+                            {
+                                CloseImagePreview();
+                            }
                             if (imageHash is not null)
                             {
                                 _knownImageHashes.Remove(imageHash);
@@ -470,20 +654,20 @@ public sealed class MainWindowViewModel : BaseViewModel
         }
     }
 
-    private void Copy(object? parameter)
+    private async Task CopyAsync(object? parameter)
     {
         try
         {
-            var signature = parameter switch
+            ClipboardContentSignature? signature = parameter switch
             {
                 FileInfoModel file when File.Exists(file.FilePath) =>
-                    _clipboardService.SetFileDropList([file.FilePath]),
+                    await _clipboardService.SetFileDropListAsync([file.FilePath]),
                 TextModel text when !string.IsNullOrEmpty(text.Text) =>
-                    _clipboardService.SetText(text.Text),
+                    await _clipboardService.SetTextAsync(text.Text),
                 ImageModel { ImageSource: not null } image =>
-                    _clipboardService.SetImage(image.ImageSource),
+                    await _clipboardService.SetImageAsync(image.ImageSource),
                 UrlModel url when !string.IsNullOrWhiteSpace(url.Url) =>
-                    _clipboardService.SetText(url.Url),
+                    await _clipboardService.SetTextAsync(url.Url),
                 _ => null
             };
 
@@ -518,6 +702,63 @@ public sealed class MainWindowViewModel : BaseViewModel
         }
     }
 
+    private void OpenFavorite(object? parameter)
+    {
+        if (parameter is not FavoriteClipboardItem favorite)
+        {
+            return;
+        }
+
+        switch (favorite.Source)
+        {
+            case FileInfoModel file:
+                OpenFile(file);
+                break;
+            case UrlModel url:
+                OpenLink(url);
+                break;
+            case ImageModel image:
+                OpenImagePreview(image);
+                break;
+        }
+    }
+
+    private void OpenImagePreview(object? parameter)
+    {
+        var image = parameter switch
+        {
+            ImageModel imageModel => imageModel,
+            FavoriteClipboardItem { Source: ImageModel imageModel } => imageModel,
+            _ => null
+        };
+
+        if (image?.ImageSource is null)
+        {
+            return;
+        }
+
+        PreviewImage = image;
+        PreviewImageSource = image.ImageSource;
+        PreviewImageName = image.Name;
+        PreviewZoom = 1.0;
+        IsImagePreviewOpen = true;
+        StatusText = "Изображение открыто";
+    }
+
+    private void CloseImagePreview()
+    {
+        IsImagePreviewOpen = false;
+        PreviewImage = null;
+        PreviewImageSource = null;
+        PreviewImageName = string.Empty;
+        PreviewZoom = 1.0;
+    }
+
+    private void ZoomImage(double delta)
+    {
+        PreviewZoom += delta;
+    }
+
     private void SelectSection(object? parameter)
     {
         if (parameter is int index)
@@ -529,6 +770,38 @@ public sealed class MainWindowViewModel : BaseViewModel
         if (parameter is string value && int.TryParse(value, CultureInfo.InvariantCulture, out index))
         {
             SelectedSectionIndex = index;
+        }
+    }
+
+    private async Task TogglePinAsync(object? parameter)
+    {
+        if (parameter is not IPinnedClipboardItem item)
+        {
+            return;
+        }
+
+        var previousValue = item.IsPinned;
+        item.IsPinned = !previousValue;
+        RebuildFavorites();
+        RefreshClipboardViews();
+
+        try
+        {
+            await _repository.UpdatePinAsync(item);
+            StatusText = item.IsPinned
+                ? "Добавлено в избранное"
+                : "Удалено из избранного";
+        }
+        catch (Exception ex)
+        {
+            item.IsPinned = previousValue;
+            RebuildFavorites();
+            RefreshClipboardViews();
+            ShowError("Pin update failed", ex);
+        }
+        finally
+        {
+            CommandManager.InvalidateRequerySuggested();
         }
     }
 
@@ -660,6 +933,11 @@ public sealed class MainWindowViewModel : BaseViewModel
         return parameter is FileInfoModel or TextModel or ImageModel or UrlModel;
     }
 
+    private static bool CanTogglePin(object? parameter)
+    {
+        return parameter is IPinnedClipboardItem;
+    }
+
     private static bool CanOpenLink(object? parameter)
     {
         return parameter is UrlModel url
@@ -672,6 +950,31 @@ public sealed class MainWindowViewModel : BaseViewModel
         return parameter is FileInfoModel file && File.Exists(file.FilePath);
     }
 
+    private static bool CanOpenFavorite(object? parameter)
+    {
+        return parameter is FavoriteClipboardItem { Source: FileInfoModel file } && File.Exists(file.FilePath)
+            || parameter is FavoriteClipboardItem { Source: UrlModel url }
+            && Uri.TryCreate(url.Url, UriKind.Absolute, out var uri)
+            && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps)
+            || parameter is FavoriteClipboardItem { Source: ImageModel { ImageSource: not null } };
+    }
+
+    private static bool CanOpenImagePreview(object? parameter)
+    {
+        return parameter is ImageModel { ImageSource: not null }
+            || parameter is FavoriteClipboardItem { Source: ImageModel { ImageSource: not null } };
+    }
+
+    private bool CanZoomInImage()
+    {
+        return IsImagePreviewOpen && PreviewZoom < MaxImagePreviewZoom;
+    }
+
+    private bool CanZoomOutImage()
+    {
+        return IsImagePreviewOpen && PreviewZoom > MinImagePreviewZoom;
+    }
+
     private bool HasClipboardItems()
     {
         return HasItems;
@@ -679,7 +982,8 @@ public sealed class MainWindowViewModel : BaseViewModel
 
     private void ClipboardCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
-        RaiseClipboardStateChanged();
+        RebuildFavorites();
+        RefreshClipboardViews();
         CommandManager.InvalidateRequerySuggested();
     }
 
@@ -689,12 +993,18 @@ public sealed class MainWindowViewModel : BaseViewModel
         OnPropertyChanged(nameof(TextCount));
         OnPropertyChanged(nameof(UrlCount));
         OnPropertyChanged(nameof(ImageCount));
+        OnPropertyChanged(nameof(FavoriteCount));
         OnPropertyChanged(nameof(TotalCount));
+        OnPropertyChanged(nameof(FilteredTotalCount));
+        OnPropertyChanged(nameof(HistoryTotalCount));
+        OnPropertyChanged(nameof(SearchResultText));
+        OnPropertyChanged(nameof(HasFavorites));
         OnPropertyChanged(nameof(HasFiles));
         OnPropertyChanged(nameof(HasTexts));
         OnPropertyChanged(nameof(HasUrls));
         OnPropertyChanged(nameof(HasImages));
         OnPropertyChanged(nameof(HasItems));
+        OnPropertyChanged(nameof(IsFavoritesEmpty));
         OnPropertyChanged(nameof(IsFilesEmpty));
         OnPropertyChanged(nameof(IsTextsEmpty));
         OnPropertyChanged(nameof(IsUrlsEmpty));
@@ -702,13 +1012,100 @@ public sealed class MainWindowViewModel : BaseViewModel
         OnPropertyChanged(nameof(IsHistoryEmpty));
     }
 
-    private void AddKnownImageHash(ImageModel image)
+    private ICollectionView CreateClipboardView<T>(
+        ObservableRangeCollection<T> collection,
+        Predicate<T> filter)
+        where T : ClipboardItemModel
     {
-        var imageHash = TryCreateImageHash(image);
-        if (imageHash is not null)
+        var view = CollectionViewSource.GetDefaultView(collection);
+        view.Filter = item => item is T typedItem && filter(typedItem);
+        view.SortDescriptions.Add(new SortDescription(nameof(ClipboardItemModel.IsPinned), ListSortDirection.Descending));
+        return view;
+    }
+
+    private ICollectionView CreateFavoritesView()
+    {
+        var view = CollectionViewSource.GetDefaultView(Favorites);
+        view.Filter = item => item is FavoriteClipboardItem favorite && MatchesFavorite(favorite);
+        return view;
+    }
+
+    private void RefreshClipboardViews()
+    {
+        FavoritesView.Refresh();
+        FilesView.Refresh();
+        TextsView.Refresh();
+        UrlsView.Refresh();
+        ImagesView.Refresh();
+        RefreshFilteredCounts();
+        RaiseClipboardStateChanged();
+    }
+
+    private void RefreshFilteredCounts()
+    {
+        _filteredFavoriteCount = FavoritesView.Cast<object>().Count();
+        _filteredFileCount = FilesView.Cast<object>().Count();
+        _filteredTextCount = TextsView.Cast<object>().Count();
+        _filteredUrlCount = UrlsView.Cast<object>().Count();
+        _filteredImageCount = ImagesView.Cast<object>().Count();
+    }
+
+    private void RebuildFavorites()
+    {
+        var favorites = Files
+            .Where(x => x.IsPinned)
+            .Select(x => new FavoriteClipboardItem(x))
+            .Concat(Texts
+                .Where(x => x.IsPinned)
+                .Select(x => new FavoriteClipboardItem(x)))
+            .Concat(Urls
+                .Where(x => x.IsPinned)
+                .Select(x => new FavoriteClipboardItem(x)))
+            .Concat(Images
+                .Where(x => x.IsPinned)
+                .Select(x => new FavoriteClipboardItem(x)))
+            .ToArray();
+
+        Favorites.ReplaceRange(favorites);
+    }
+
+    private bool MatchesFavorite(FavoriteClipboardItem favorite)
+    {
+        return favorite.Source switch
         {
-            _knownImageHashes.Add(imageHash);
-        }
+            FileInfoModel file => MatchesFile(file),
+            TextModel text => MatchesText(text),
+            UrlModel url => MatchesUrl(url),
+            ImageModel image => MatchesImage(image),
+            _ => false
+        };
+    }
+
+    private bool MatchesFile(FileInfoModel file)
+    {
+        return MatchesSearch(file.Name, file.FilePath);
+    }
+
+    private bool MatchesText(TextModel text)
+    {
+        return MatchesSearch(text.Text);
+    }
+
+    private bool MatchesUrl(UrlModel url)
+    {
+        return MatchesSearch(url.Title, url.Url, url.Description);
+    }
+
+    private bool MatchesImage(ImageModel image)
+    {
+        return MatchesSearch(image.Name);
+    }
+
+    private bool MatchesSearch(params string?[] values)
+    {
+        var query = SearchText.Trim();
+        return query.Length == 0
+            || values.Any(value => value?.Contains(query, StringComparison.CurrentCultureIgnoreCase) == true);
     }
 
     private string? TryCreateImageHash(ImageModel image)
@@ -735,7 +1132,37 @@ public sealed class MainWindowViewModel : BaseViewModel
         }
     }
 
-    private static void TryLaunch(Action action)
+    private async Task<IReadOnlyCollection<string>> PrepareLoadedImagesAsync(
+        IReadOnlyCollection<ImageModel> images,
+        CancellationToken cancellationToken)
+    {
+        if (images.Count == 0)
+        {
+            return [];
+        }
+
+        return await Task.Run(
+            () =>
+            {
+                var hashes = new List<string>(images.Count);
+
+                foreach (var image in images)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    image.ImageSource = BitmapSourceExtensions.ByteArrayToBitmapSource(image.ImageData);
+                    if (image.ImageSource is not null)
+                    {
+                        hashes.Add(_clipboardService.CreateImageSignature(image.ImageSource).Value);
+                    }
+                }
+
+                return (IReadOnlyCollection<string>)hashes;
+            },
+            cancellationToken);
+    }
+
+    private void TryLaunch(Action action)
     {
         try
         {
@@ -747,9 +1174,9 @@ public sealed class MainWindowViewModel : BaseViewModel
         }
     }
 
-    private static void ShowError(string title, Exception exception)
+    private void ShowError(string title, Exception exception)
     {
-        MessageBox.Show(exception.Message, title, MessageBoxButton.OK, MessageBoxImage.Error);
+        _notificationService.ShowError(title, exception.Message);
     }
 }
 
@@ -781,15 +1208,93 @@ internal sealed class ClipboardItemsBatch
     public bool HasItems => TotalCount > 0;
 }
 
-internal static class ObservableCollectionExtensions
+public sealed class FavoriteClipboardItem
 {
-    public static void ReplaceWith<T>(this ObservableCollection<T> collection, IEnumerable<T> items)
-    {
-        collection.Clear();
+    private const int TitleLimit = 64;
+    private const int DescriptionLimit = 180;
 
-        foreach (var item in items)
+    public FavoriteClipboardItem(ClipboardItemModel source)
+    {
+        Source = source;
+
+        switch (source)
         {
-            collection.Add(item);
+            case FileInfoModel file:
+                TypeLabel = "Файл";
+                Title = Shorten(file.Name, TitleLimit);
+                Subtitle = Shorten(file.FilePath, DescriptionLimit);
+                Description = file.FilePath;
+                ShowsIconPreview = true;
+                break;
+            case TextModel text:
+                TypeLabel = "Текст";
+                Title = Shorten(GetFirstLine(text.Text), TitleLimit);
+                Subtitle = "Текстовая запись";
+                Description = Shorten(text.Text, DescriptionLimit);
+                ShowsTextPreview = true;
+                break;
+            case UrlModel url:
+                TypeLabel = "Ссылка";
+                Title = Shorten(string.IsNullOrWhiteSpace(url.Title) ? url.Url : url.Title, TitleLimit);
+                Subtitle = Shorten(url.Url, DescriptionLimit);
+                Description = Shorten(url.Description, DescriptionLimit);
+                PreviewSource = url.ImageUrl;
+                ShowsImagePreview = !string.IsNullOrWhiteSpace(url.ImageUrl);
+                ShowsIconPreview = !ShowsImagePreview;
+                HasOpenAction = true;
+                break;
+            case ImageModel image:
+                TypeLabel = "Изображение";
+                Title = Shorten(image.Name, TitleLimit);
+                Subtitle = "Изображение";
+                Description = image.Name;
+                PreviewSource = image.ImageSource;
+                ShowsImagePreview = image.ImageSource is not null;
+                ShowsIconPreview = !ShowsImagePreview;
+                break;
+            default:
+                TypeLabel = "Запись";
+                Title = "Избранная запись";
+                Subtitle = string.Empty;
+                Description = string.Empty;
+                ShowsIconPreview = true;
+                break;
         }
+
+        HasOpenAction = HasOpenAction || source is FileInfoModel or ImageModel;
+    }
+
+    public ClipboardItemModel Source { get; }
+    public string TypeLabel { get; }
+    public string Title { get; }
+    public string Subtitle { get; }
+    public string Description { get; }
+    public object? PreviewSource { get; }
+    public bool ShowsImagePreview { get; }
+    public bool ShowsStaticImagePreview => ShowsImagePreview && !HasImagePreviewAction;
+    public bool ShowsTextPreview { get; }
+    public bool ShowsIconPreview { get; }
+    public bool HasOpenAction { get; }
+    public bool HasImagePreviewAction => Source is ImageModel { ImageSource: not null };
+
+    private static string GetFirstLine(string value)
+    {
+        return value
+            .ReplaceLineEndings("\n")
+            .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .FirstOrDefault() ?? "Текстовая запись";
+    }
+
+    private static string Shorten(string? value, int maxLength)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return string.Empty;
+        }
+
+        var trimmedValue = value.Trim();
+        return trimmedValue.Length <= maxLength
+            ? trimmedValue
+            : string.Concat(trimmedValue.AsSpan(0, maxLength - 1), "…");
     }
 }
