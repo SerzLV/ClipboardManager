@@ -1,31 +1,70 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using System.Windows;
+using System.Windows.Threading;
+using ClipboardManager.Helper;
+using ClipboardManager.ViewModels;
 using MahApps.Metro.Controls;
 
-namespace ClipboardManager
+namespace ClipboardManager;
+
+public partial class MainWindow : MetroWindow
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
-    public partial class MainWindow : MetroWindow
+    private readonly MainWindowViewModel _viewModel = new();
+    private ClipboardWatcher? _clipboardWatcher;
+    private bool _isCloseConfirmed;
+    private bool _isSavingBeforeClose;
+
+    public MainWindow()
     {
-        MainWindowViewModel _mwvm = new MainWindowViewModel();
-        public MainWindow()
+        InitializeComponent();
+        DataContext = _viewModel;
+    }
+
+    private async void MetroWindow_Loaded(object sender, RoutedEventArgs e)
+    {
+        await _viewModel.LoadAsync();
+
+        if (_clipboardWatcher is not null)
         {
-            InitializeComponent();
-            DataContext = _mwvm;
+            return;
         }
 
-        private void MetroWindow_Loaded(object sender, RoutedEventArgs e)
+        _clipboardWatcher = new ClipboardWatcher(this);
+        _clipboardWatcher.ClipboardChanged += ClipboardWatcher_ClipboardChanged;
+    }
+
+    private void ClipboardWatcher_ClipboardChanged(object? sender, EventArgs e)
+    {
+        _ = _viewModel.HandleClipboardChangedAsync();
+    }
+
+    private void MetroWindow_Closing(object? sender, CancelEventArgs e)
+    {
+        if (_isCloseConfirmed)
         {
-            var windowClipboardManager = new Helper.ClipboardManager(this);
-            windowClipboardManager.ClipboardChanged += _mwvm.ClipboardContextChange;
+            return;
         }
 
-        private void MetroWindow_Closing(object sender, CancelEventArgs e)
+        e.Cancel = true;
+        if (_isSavingBeforeClose)
         {
-            this.Hide();
-            this._mwvm.SaveCommand.Execute(null);
+            return;
         }
+
+        _isSavingBeforeClose = true;
+        _clipboardWatcher?.Dispose();
+        _clipboardWatcher = null;
+
+        Dispatcher.InvokeAsync(
+            () => _ = CloseAfterSaveAsync(),
+            DispatcherPriority.ContextIdle);
+    }
+
+    private async Task CloseAfterSaveAsync()
+    {
+        await _viewModel.SaveAsync();
+
+        _isCloseConfirmed = true;
+        Close();
     }
 }

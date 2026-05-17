@@ -1,15 +1,11 @@
-﻿using System.Windows.Input;
 using System.Windows.Media.Imaging;
 
-namespace Models
+namespace ClipboardManager.Models;
+
+public sealed class ImageModel
 {
-    public class ImageModel
-    {
-        public int Id { get; set; }
-        public string Name { get; set; }
-        public byte[] ImageData { get; set; }
-        public BitmapSource ImageSource { get; set; }
-        public ICommand CopyCommand { get; set; }
-        public ICommand DeleteCommand { get; set; }
-    }
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public byte[] ImageData { get; set; } = [];
+    public BitmapSource? ImageSource { get; set; }
 }

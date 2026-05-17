@@ -1,12 +1,7 @@
-﻿using System.Windows.Input;
+namespace ClipboardManager.Models;
 
-namespace Models
+public sealed class TextModel
 {
-    public class TextModel
-    {
-        public int Id { get; set; }
-        public string Text { get; set; }
-        public ICommand CopyCommand { get; set; }
-        public ICommand DeleteCommand { get; set; }
-    }
+    public int Id { get; set; }
+    public string Text { get; set; } = string.Empty;
 }

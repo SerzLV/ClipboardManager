@@ -13,6 +13,25 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
+            <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Right" Margin="8">
+                <Button Command="{Binding SaveCommand}"
+                        Width="32"
+                        Height="32"
+                        Margin="4"
+                        BorderThickness="0"
+                        ToolTip="Save">
+                    <iconPacks:Material Kind="ContentSave"/>
+                </Button>
+                <Button Command="{Binding ClearCommand}"
+                        Width="32"
+                        Height="32"
+                        Margin="4"
+                        Foreground="DarkRed"
+                        BorderThickness="0"
+                        ToolTip="Clear">
+                    <iconPacks:Material Kind="DeleteSweep"/>
+                </Button>
+            </StackPanel>
             <TabControl Grid.Row="1">
                 <TabItem Header="Files">
                     <ListView ItemsSource="{Binding Files}">
@@ -39,30 +58,33 @@
 
                                                 <!-- Buttons on the right -->
                                                 <StackPanel Grid.Column="1" Grid.RowSpan="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0,0,0">
-                                                    <Button Command="{Binding CopyCommand}" 
+                                                    <Button Command="{Binding DataContext.CopyCommand, RelativeSource={RelativeSource AncestorType=ListView}}" 
                                                         CommandParameter="{Binding}"
                                                         Width="30"
                                                         Height="30"
                                                         Margin="5"
-                                                        BorderThickness="0">
+                                                        BorderThickness="0"
+                                                        ToolTip="Copy">
                                                         <iconPacks:Material Kind="ContentCopy"/>
                                                     </Button>
-                                                    <Button Command="{Binding OpenFileCommand}" 
+                                                    <Button Command="{Binding DataContext.OpenFileCommand, RelativeSource={RelativeSource AncestorType=ListView}}" 
                                                         CommandParameter="{Binding}"
                                                         Width="30"
                                                         Height="30"
                                                         Margin="5"
                                                         Foreground="{DynamicResource MahApps.Brushes.Accent}"
-                                                        BorderThickness="0">
+                                                        BorderThickness="0"
+                                                        ToolTip="Open">
                                                         <iconPacks:FontAwesome Kind="FileSolid"/>
                                                     </Button>
-                                                    <Button Command="{Binding DeleteCommand}" 
+                                                    <Button Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource AncestorType=ListView}}" 
                                                         CommandParameter="{Binding}"
                                                         Width="30"
                                                         Height="30"
                                                         Margin="5"
                                                         Foreground="DarkRed"
-                                                        BorderThickness="0">
+                                                        BorderThickness="0"
+                                                        ToolTip="Delete">
                                                         <iconPacks:Material Kind="Delete"/>
                                                     </Button>
                                                 </StackPanel>
@@ -88,12 +110,13 @@
                                 <GridViewColumn Header="Copy">
                                     <GridViewColumn.CellTemplate>
                                         <DataTemplate>
-                                            <Button Command="{Binding CopyCommand}" 
+                                            <Button Command="{Binding DataContext.CopyCommand, RelativeSource={RelativeSource AncestorType=ListView}}" 
                                                 CommandParameter="{Binding}"
                                                 Width="30"
                                                 Height="30"
                                                 Margin="5"
-                                                BorderThickness="0">
+                                                BorderThickness="0"
+                                                ToolTip="Copy">
                                                 <iconPacks:Material Kind="ContentCopy"/>
                                             </Button>
                                         </DataTemplate>
@@ -102,13 +125,14 @@
                                 <GridViewColumn Header="Delete">
                                     <GridViewColumn.CellTemplate>
                                         <DataTemplate>
-                                            <Button Command="{Binding DeleteCommand}" 
+                                            <Button Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource AncestorType=ListView}}" 
                                                 CommandParameter="{Binding}"
                                                 Width="30"
                                                 Height="30"
                                                 Margin="5"
                                                 Foreground="DarkRed"
-                                                BorderThickness="0">
+                                                BorderThickness="0"
+                                                ToolTip="Delete">
                                                 <iconPacks:Material Kind="Delete"/>
                                             </Button>
                                         </DataTemplate>
@@ -154,30 +178,33 @@
 
                                                 <!-- Buttons on the right -->
                                                 <StackPanel Grid.Column="1" Grid.RowSpan="3" Orientation="Vertical" VerticalAlignment="Center" Margin="10,0,0,0">
-                                                    <Button Command="{Binding CopyCommand}" 
+                                                    <Button Command="{Binding DataContext.CopyCommand, RelativeSource={RelativeSource AncestorType=ListView}}" 
                                             CommandParameter="{Binding}"
                                             Width="30"
                                             Height="30"
                                             Margin="5"
-                                            BorderThickness="0">
+                                            BorderThickness="0"
+                                            ToolTip="Copy">
                                                         <iconPacks:Material Kind="ContentCopy"/>
                                                     </Button>
-                                                    <Button Command="{Binding OpenLinkCommand}" 
+                                                    <Button Command="{Binding DataContext.OpenLinkCommand, RelativeSource={RelativeSource AncestorType=ListView}}" 
                                             CommandParameter="{Binding}"
                                             Width="30"
                                             Height="30"
                                             Margin="5"
                                             Foreground="{DynamicResource MahApps.Brushes.Accent}"
-                                            BorderThickness="0">
+                                            BorderThickness="0"
+                                            ToolTip="Open">
                                                         <iconPacks:FontAwesome Kind="InternetExplorerBrands"/>
                                                     </Button>
-                                                    <Button Command="{Binding DeleteCommand}" 
+                                                    <Button Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource AncestorType=ListView}}" 
                                             CommandParameter="{Binding}"
                                             Width="30"
                                             Height="30"
                                             Margin="5"
                                             Foreground="DarkRed"
-                                            BorderThickness="0">
+                                            BorderThickness="0"
+                                            ToolTip="Delete">
                                                         <iconPacks:Material Kind="Delete"/>
                                                     </Button>
                                                 </StackPanel>
@@ -220,21 +247,23 @@
                                             Orientation="Horizontal" 
                                             VerticalAlignment="Center" 
                                             Margin="10,0,0,0">
-                                                    <Button Command="{Binding CopyCommand}" 
+                                                    <Button Command="{Binding DataContext.CopyCommand, RelativeSource={RelativeSource AncestorType=ListView}}" 
                                             CommandParameter="{Binding}"
                                             Width="30"
                                             Height="30"
                                             Margin="5"
-                                            BorderThickness="0">
+                                            BorderThickness="0"
+                                            ToolTip="Copy">
                                                         <iconPacks:Material Kind="ContentCopy"/>
                                                     </Button>
-                                                    <Button Command="{Binding DeleteCommand}" 
+                                                    <Button Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource AncestorType=ListView}}" 
                                             CommandParameter="{Binding}"
                                             Width="30"
                                             Height="30"
                                             Margin="5"
                                             Foreground="DarkRed"
-                                            BorderThickness="0">
+                                            BorderThickness="0"
+                                            ToolTip="Delete">
                                                         <iconPacks:Material Kind="Delete"/>
                                                     </Button>
                                                 </StackPanel>
