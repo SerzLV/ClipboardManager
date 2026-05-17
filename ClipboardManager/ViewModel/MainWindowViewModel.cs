@@ -22,7 +22,7 @@ public sealed class MainWindowViewModel : BaseViewModel
     private readonly IClipboardService _clipboardService;
     private readonly ClipboardChangeSuppressor _clipboardChangeSuppressor = new();
     private readonly SemaphoreSlim _clipboardLock = new(1, 1);
-    private readonly SemaphoreSlim _saveLock = new(1, 1);
+    private readonly SemaphoreSlim _persistenceLock = new(1, 1);
     private readonly HashSet<string> _knownImageHashes = [];
 
     private ClipboardContentSignature? _lastHandledClipboardSignature;
@@ -47,7 +47,6 @@ public sealed class MainWindowViewModel : BaseViewModel
         _shellLauncher = shellLauncher;
         _clipboardService = clipboardService;
 
-        SaveCommand = new AsyncRelayCommand(_ => SaveAsync());
         ClearCommand = new AsyncRelayCommand(_ => ClearAsync(), _ => HasClipboardItems());
         CopyCommand = new RelayCommand(Copy, CanCopy);
         DeleteCommand = new AsyncRelayCommand(DeleteAsync, CanDelete);
@@ -143,7 +142,6 @@ public sealed class MainWindowViewModel : BaseViewModel
     public bool IsImagesEmpty => !HasImages;
     public bool IsHistoryEmpty => !HasItems;
 
-    public ICommand SaveCommand { get; }
     public ICommand ClearCommand { get; }
     public ICommand CopyCommand { get; }
     public ICommand DeleteCommand { get; }
@@ -216,18 +214,29 @@ public sealed class MainWindowViewModel : BaseViewModel
 
             _lastHandledClipboardSignature = signature;
 
-            var beforeCount = TotalCount;
-            ProcessFileDropList();
-            await ProcessTextAsync(cancellationToken);
-            ProcessImage(signature);
+            var addedItems = new ClipboardItemsBatch();
 
-            if (TotalCount > beforeCount)
+            switch (signature.Kind)
             {
-                LastActivityAt = DateTime.Now;
-                StatusText = $"Добавлено новых элементов: {TotalCount - beforeCount}";
+                case ClipboardContentKind.FileDropList:
+                    ProcessFileDropList(addedItems);
+                    break;
+                case ClipboardContentKind.Text:
+                    await ProcessTextAsync(addedItems, cancellationToken);
+                    break;
+                case ClipboardContentKind.Image:
+                    ProcessImage(signature, addedItems);
+                    break;
             }
 
-            CommandManager.InvalidateRequerySuggested();
+            if (addedItems.HasItems)
+            {
+                LastActivityAt = DateTime.Now;
+                StatusText = $"Добавлено новых элементов: {addedItems.TotalCount}";
+                CommandManager.InvalidateRequerySuggested();
+
+                await PersistAddedItemsAsync(addedItems, cancellationToken);
+            }
         }
         catch (Exception ex)
         {
@@ -239,36 +248,21 @@ public sealed class MainWindowViewModel : BaseViewModel
         }
     }
 
-    public async Task SaveAsync(CancellationToken cancellationToken = default)
+    public async Task FlushPendingSavesAsync(CancellationToken cancellationToken = default)
     {
-        await _saveLock.WaitAsync(cancellationToken);
+        await _clipboardLock.WaitAsync(cancellationToken);
 
         try
         {
-            await RunBusyAsync(async () =>
-            {
-                foreach (var image in Images.Where(x => x.Id == 0 && x.ImageSource is not null))
-                {
-                    image.ImageData = BitmapSourceExtensions.ConvertBitmapSourceToByteArray(image.ImageSource, ".png");
-                }
-
-                await _repository.SaveNewItemsAsync(
-                    Files,
-                    Texts,
-                    Images,
-                    Urls,
-                    cancellationToken);
-
-                StatusText = "История сохранена";
-            });
+            await PersistUnsavedItemsAsync(cancellationToken);
         }
         finally
         {
-            _saveLock.Release();
+            _clipboardLock.Release();
         }
     }
 
-    private void ProcessFileDropList()
+    private void ProcessFileDropList(ClipboardItemsBatch addedItems)
     {
         if (!_clipboardService.ContainsFileDropList())
         {
@@ -288,15 +282,18 @@ public sealed class MainWindowViewModel : BaseViewModel
                 continue;
             }
 
-            Files.Add(new FileInfoModel
+            var fileInfo = new FileInfoModel
             {
                 FilePath = filePath,
                 Name = Path.GetFileName(filePath)
-            });
+            };
+
+            Files.Add(fileInfo);
+            addedItems.Files.Add(fileInfo);
         }
     }
 
-    private async Task ProcessTextAsync(CancellationToken cancellationToken)
+    private async Task ProcessTextAsync(ClipboardItemsBatch addedItems, CancellationToken cancellationToken)
     {
         if (!_clipboardService.ContainsText())
         {
@@ -314,25 +311,30 @@ public sealed class MainWindowViewModel : BaseViewModel
             return;
         }
 
-        Texts.Add(new TextModel { Text = text });
+        var textInfo = new TextModel { Text = text };
+        Texts.Add(textInfo);
+        addedItems.Texts.Add(textInfo);
 
-        foreach (Match match in UrlRegex.Matches(text))
+        var urls = UrlRegex.Matches(text)
+            .Select(match => match.Value.TrimEnd('.', ',', ';', ')', ']'))
+            .Where(url => !Urls.Any(x => string.Equals(x.Url, url, StringComparison.OrdinalIgnoreCase)))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+
+        var metadataItems = await Task.WhenAll(
+            urls.Select(url => _linkMetadataService.GetMetadataAsync(url, cancellationToken)));
+
+        foreach (var metadata in metadataItems)
         {
-            var url = match.Value.TrimEnd('.', ',', ';', ')', ']');
-            if (Urls.Any(x => string.Equals(x.Url, url, StringComparison.OrdinalIgnoreCase)))
-            {
-                continue;
-            }
-
-            var metadata = await _linkMetadataService.GetMetadataAsync(url, cancellationToken);
             if (metadata is not null && !Urls.Any(x => string.Equals(x.Url, metadata.Url, StringComparison.OrdinalIgnoreCase)))
             {
                 Urls.Add(metadata);
+                addedItems.Urls.Add(metadata);
             }
         }
     }
 
-    private void ProcessImage(ClipboardContentSignature currentSignature)
+    private void ProcessImage(ClipboardContentSignature currentSignature, ClipboardItemsBatch addedItems)
     {
         if (!_clipboardService.ContainsImage())
         {
@@ -354,28 +356,49 @@ public sealed class MainWindowViewModel : BaseViewModel
             return;
         }
 
-        Images.Add(new ImageModel
+        var imageInfo = new ImageModel
         {
             ImageSource = image,
             Name = DateTime.UtcNow.ToString("yyyyMMdd_HHmmss_fff", CultureInfo.InvariantCulture)
-        });
+        };
+
+        Images.Add(imageInfo);
+        addedItems.Images.Add(imageInfo);
     }
 
     private async Task ClearAsync(CancellationToken cancellationToken = default)
     {
         await RunBusyAsync(async () =>
         {
-            await _repository.ClearAsync(cancellationToken);
-            Files.Clear();
-            Texts.Clear();
-            Images.Clear();
-            Urls.Clear();
-            _knownImageHashes.Clear();
-            _lastHandledClipboardSignature = null;
-            _clipboardChangeSuppressor.Clear();
-            LastActivityAt = null;
-            StatusText = "История очищена";
-            CommandManager.InvalidateRequerySuggested();
+            await _clipboardLock.WaitAsync(cancellationToken);
+
+            try
+            {
+                await _persistenceLock.WaitAsync(cancellationToken);
+
+                try
+                {
+                    await _repository.ClearAsync(cancellationToken);
+                    Files.Clear();
+                    Texts.Clear();
+                    Images.Clear();
+                    Urls.Clear();
+                    _knownImageHashes.Clear();
+                    _lastHandledClipboardSignature = null;
+                    _clipboardChangeSuppressor.Clear();
+                    LastActivityAt = null;
+                    StatusText = "История очищена";
+                    CommandManager.InvalidateRequerySuggested();
+                }
+                finally
+                {
+                    _persistenceLock.Release();
+                }
+            }
+            finally
+            {
+                _clipboardLock.Release();
+            }
         });
     }
 
@@ -383,41 +406,59 @@ public sealed class MainWindowViewModel : BaseViewModel
     {
         try
         {
-            switch (parameter)
+            await _clipboardLock.WaitAsync();
+
+            try
             {
-                case FileInfoModel file:
-                    if (file.Id != 0)
+                await _persistenceLock.WaitAsync();
+
+                try
+                {
+                    switch (parameter)
                     {
-                        await _repository.DeleteFileAsync(file);
+                        case FileInfoModel file:
+                            if (file.Id != 0)
+                            {
+                                await _repository.DeleteFileAsync(file);
+                            }
+                            Files.Remove(file);
+                            break;
+                        case TextModel text:
+                            if (text.Id != 0)
+                            {
+                                await _repository.DeleteTextAsync(text);
+                            }
+                            Texts.Remove(text);
+                            break;
+                        case ImageModel image:
+                            var imageHash = TryCreateImageHash(image);
+                            if (image.Id != 0)
+                            {
+                                await _repository.DeleteImageAsync(image);
+                            }
+                            Images.Remove(image);
+                            if (imageHash is not null)
+                            {
+                                _knownImageHashes.Remove(imageHash);
+                            }
+                            break;
+                        case UrlModel url:
+                            if (url.Id != 0)
+                            {
+                                await _repository.DeleteUrlAsync(url);
+                            }
+                            Urls.Remove(url);
+                            break;
                     }
-                    Files.Remove(file);
-                    break;
-                case TextModel text:
-                    if (text.Id != 0)
-                    {
-                        await _repository.DeleteTextAsync(text);
-                    }
-                    Texts.Remove(text);
-                    break;
-                case ImageModel image:
-                    var imageHash = TryCreateImageHash(image);
-                    if (image.Id != 0)
-                    {
-                        await _repository.DeleteImageAsync(image);
-                    }
-                    Images.Remove(image);
-                    if (imageHash is not null)
-                    {
-                        _knownImageHashes.Remove(imageHash);
-                    }
-                    break;
-                case UrlModel url:
-                    if (url.Id != 0)
-                    {
-                        await _repository.DeleteUrlAsync(url);
-                    }
-                    Urls.Remove(url);
-                    break;
+                }
+                finally
+                {
+                    _persistenceLock.Release();
+                }
+            }
+            finally
+            {
+                _clipboardLock.Release();
             }
 
             StatusText = "Элемент удален";
@@ -488,6 +529,117 @@ public sealed class MainWindowViewModel : BaseViewModel
         if (parameter is string value && int.TryParse(value, CultureInfo.InvariantCulture, out index))
         {
             SelectedSectionIndex = index;
+        }
+    }
+
+    private async Task PersistAddedItemsAsync(
+        ClipboardItemsBatch addedItems,
+        CancellationToken cancellationToken)
+    {
+        if (!addedItems.HasItems)
+        {
+            return;
+        }
+
+        await _persistenceLock.WaitAsync(cancellationToken);
+
+        try
+        {
+            await PrepareImagesForStorageAsync(addedItems.Images, cancellationToken);
+
+            await _repository.SaveItemsAsync(
+                addedItems.Files,
+                addedItems.Texts,
+                addedItems.Images,
+                addedItems.Urls,
+                cancellationToken);
+
+            StatusText = $"Автосохранено элементов: {addedItems.TotalCount}";
+        }
+        catch (Exception ex)
+        {
+            ShowError("Auto-save failed", ex);
+        }
+        finally
+        {
+            _persistenceLock.Release();
+        }
+    }
+
+    private async Task PersistUnsavedItemsAsync(CancellationToken cancellationToken)
+    {
+        var unsavedItems = new ClipboardItemsBatch(
+            Files.Where(x => x.Id == 0).ToArray(),
+            Texts.Where(x => x.Id == 0).ToArray(),
+            Images.Where(x => x.Id == 0).ToArray(),
+            Urls.Where(x => x.Id == 0).ToArray());
+
+        if (!unsavedItems.HasItems)
+        {
+            return;
+        }
+
+        await PersistAddedItemsAsync(unsavedItems, cancellationToken);
+    }
+
+    private static async Task PrepareImagesForStorageAsync(
+        IReadOnlyCollection<ImageModel> images,
+        CancellationToken cancellationToken)
+    {
+        var pendingImages = images
+            .Where(x => x.Id == 0 && x.ImageSource is not null && x.ImageData.Length == 0)
+            .Select(x => (Image: x, Source: x.ImageSource!))
+            .ToArray();
+
+        if (pendingImages.Length == 0)
+        {
+            return;
+        }
+
+        foreach (var (_, source) in pendingImages)
+        {
+            if (source.CanFreeze && !source.IsFrozen)
+            {
+                source.Freeze();
+            }
+        }
+
+        var backgroundImages = pendingImages
+            .Where(x => x.Source.IsFrozen)
+            .ToArray();
+        var uiThreadImages = pendingImages
+            .Where(x => !x.Source.IsFrozen)
+            .ToArray();
+
+        foreach (var (image, source) in uiThreadImages)
+        {
+            image.ImageData = BitmapSourceExtensions.ConvertBitmapSourceToByteArray(source, ".png");
+        }
+
+        if (backgroundImages.Length == 0)
+        {
+            return;
+        }
+
+        var encodedImages = await Task.Run(
+            () =>
+            {
+                return backgroundImages
+                    .Select(item =>
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+
+                        return (
+                            item.Image,
+                            Data: BitmapSourceExtensions.ConvertBitmapSourceToByteArray(item.Source, ".png"));
+                    })
+                    .ToArray();
+            },
+            cancellationToken);
+
+        foreach (var (image, imageData) in encodedImages)
+        {
+            image.ImageData = imageData;
         }
     }
 
@@ -599,6 +751,34 @@ public sealed class MainWindowViewModel : BaseViewModel
     {
         MessageBox.Show(exception.Message, title, MessageBoxButton.OK, MessageBoxImage.Error);
     }
+}
+
+internal sealed class ClipboardItemsBatch
+{
+    public ClipboardItemsBatch()
+        : this([], [], [], [])
+    {
+    }
+
+    public ClipboardItemsBatch(
+        IReadOnlyCollection<FileInfoModel> files,
+        IReadOnlyCollection<TextModel> texts,
+        IReadOnlyCollection<ImageModel> images,
+        IReadOnlyCollection<UrlModel> urls)
+    {
+        Files = [.. files];
+        Texts = [.. texts];
+        Images = [.. images];
+        Urls = [.. urls];
+    }
+
+    public List<FileInfoModel> Files { get; }
+    public List<TextModel> Texts { get; }
+    public List<ImageModel> Images { get; }
+    public List<UrlModel> Urls { get; }
+
+    public int TotalCount => Files.Count + Texts.Count + Images.Count + Urls.Count;
+    public bool HasItems => TotalCount > 0;
 }
 
 internal static class ObservableCollectionExtensions

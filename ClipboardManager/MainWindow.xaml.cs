@@ -56,13 +56,13 @@ public partial class MainWindow : MetroWindow
         _clipboardWatcher = null;
 
         Dispatcher.InvokeAsync(
-            () => _ = CloseAfterSaveAsync(),
+            () => _ = CloseAfterFlushAsync(),
             DispatcherPriority.ContextIdle);
     }
 
-    private async Task CloseAfterSaveAsync()
+    private async Task CloseAfterFlushAsync()
     {
-        await _viewModel.SaveAsync();
+        await _viewModel.FlushPendingSavesAsync();
 
         _isCloseConfirmed = true;
         Close();

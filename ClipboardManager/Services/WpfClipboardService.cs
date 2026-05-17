@@ -2,6 +2,7 @@ using System.Collections.Specialized;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
+using System.Text;
 using System.Windows;
 using System.Windows.Media.Imaging;
 using ClipboardManager.Helper;
@@ -75,9 +76,14 @@ public sealed class WpfClipboardService : IClipboardService
 
     public BitmapSource? GetImage()
     {
-        return ContainsImage()
-            ? ExecuteWithRetry(Clipboard.GetImage)
-            : null;
+        if (!ContainsImage())
+        {
+            return null;
+        }
+
+        var image = ExecuteWithRetry(Clipboard.GetImage);
+        FreezeIfPossible(image);
+        return image;
     }
 
     public ClipboardContentSignature SetFileDropList(IEnumerable<string> filePaths)
@@ -114,9 +120,33 @@ public sealed class WpfClipboardService : IClipboardService
 
     public ClipboardContentSignature CreateImageSignature(BitmapSource image)
     {
-        var imageBytes = BitmapSourceExtensions.ConvertBitmapSourceToByteArray(image, ".png");
-        var hash = SHA256.HashData(imageBytes);
-        return new ClipboardContentSignature(ClipboardContentKind.Image, Convert.ToHexString(hash));
+        using var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
+
+        AppendInt(hash, image.PixelWidth);
+        AppendInt(hash, image.PixelHeight);
+        AppendInt(hash, image.Format.BitsPerPixel);
+        AppendString(hash, image.Format.ToString());
+
+        if (image.Palette is not null)
+        {
+            foreach (var color in image.Palette.Colors)
+            {
+                hash.AppendData([color.A, color.R, color.G, color.B]);
+            }
+        }
+
+        if (image.Format.BitsPerPixel <= 0)
+        {
+            hash.AppendData(BitmapSourceExtensions.ConvertBitmapSourceToByteArray(image, ".png"));
+            return new ClipboardContentSignature(ClipboardContentKind.Image, Convert.ToHexString(hash.GetHashAndReset()));
+        }
+
+        var stride = checked((image.PixelWidth * image.Format.BitsPerPixel + 7) / 8);
+        var pixels = new byte[checked(stride * image.PixelHeight)];
+        image.CopyPixels(pixels, stride, 0);
+        hash.AppendData(pixels);
+
+        return new ClipboardContentSignature(ClipboardContentKind.Image, Convert.ToHexString(hash.GetHashAndReset()));
     }
 
     private static ClipboardContentSignature CreateFileDropListSignature(IEnumerable<string> filePaths)
@@ -160,5 +190,23 @@ public sealed class WpfClipboardService : IClipboardService
     private static bool IsTransientClipboardException(Exception exception)
     {
         return exception is ExternalException or COMException;
+    }
+
+    private static void FreezeIfPossible(BitmapSource? image)
+    {
+        if (image?.CanFreeze == true && !image.IsFrozen)
+        {
+            image.Freeze();
+        }
+    }
+
+    private static void AppendInt(IncrementalHash hash, int value)
+    {
+        hash.AppendData(BitConverter.GetBytes(value));
+    }
+
+    private static void AppendString(IncrementalHash hash, string value)
+    {
+        hash.AppendData(Encoding.UTF8.GetBytes(value));
     }
 }
