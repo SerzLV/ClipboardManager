@@ -81,6 +81,13 @@
             <Setter Property="LineHeight" Value="14" />
         </Style>
 
+        <Style x:Key="SectionTabIconStyle" TargetType="{x:Type Border}">
+            <Setter Property="Width" Value="30" />
+            <Setter Property="Height" Value="30" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+
         <Style x:Key="IconButtonStyle" TargetType="{x:Type Button}">
             <Setter Property="Width" Value="34" />
             <Setter Property="Height" Value="34" />
@@ -330,10 +337,10 @@
         </Style>
 
         <Style x:Key="SectionTabButtonStyle" TargetType="{x:Type RadioButton}">
-            <Setter Property="MinWidth" Value="146" />
-            <Setter Property="Height" Value="44" />
-            <Setter Property="Margin" Value="0,0,10,16" />
-            <Setter Property="Padding" Value="12,0" />
+            <Setter Property="MinWidth" Value="168" />
+            <Setter Property="Height" Value="50" />
+            <Setter Property="Margin" Value="0,0,10,14" />
+            <Setter Property="Padding" Value="10,0" />
             <Setter Property="Foreground" Value="{StaticResource MutedTextBrush}" />
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="Cursor" Value="Hand" />
@@ -659,7 +666,6 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
@@ -750,113 +756,7 @@
             </Border>
 
             <WrapPanel Grid.Row="1"
-                       Margin="0,18,0,8">
-                <Border Style="{StaticResource StatCardStyle}">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="44" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <Border Width="38" Height="38" Background="{StaticResource PrimarySoftBrush}" CornerRadius="8">
-                            <Grid>
-                                <Viewbox Width="17"
-                                         Height="17"
-                                         HorizontalAlignment="Center"
-                                         VerticalAlignment="Center">
-                                    <iconPacks:FontAwesome Kind="FileSolid" Width="17" Height="17" />
-                                </Viewbox>
-                            </Grid>
-                        </Border>
-                        <StackPanel Grid.Column="1" Margin="10,0,0,0">
-                            <TextBlock Text="{Binding FileCount}"
-                                       Foreground="{StaticResource TextBrush}"
-                                       FontSize="20"
-                                       FontWeight="SemiBold" />
-                            <TextBlock Text="Файлы" Style="{StaticResource MutedTextStyle}" />
-                        </StackPanel>
-                    </Grid>
-                </Border>
-
-                <Border Style="{StaticResource StatCardStyle}">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="44" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <Border Width="38" Height="38" Background="{StaticResource AmberSoftBrush}" CornerRadius="8">
-                            <Grid>
-                                <Viewbox Width="17"
-                                         Height="17"
-                                         HorizontalAlignment="Center"
-                                         VerticalAlignment="Center">
-                                    <iconPacks:Material Kind="ContentCopy" Width="17" Height="17" />
-                                </Viewbox>
-                            </Grid>
-                        </Border>
-                        <StackPanel Grid.Column="1" Margin="10,0,0,0">
-                            <TextBlock Text="{Binding TextCount}"
-                                       Foreground="{StaticResource TextBrush}"
-                                       FontSize="20"
-                                       FontWeight="SemiBold" />
-                            <TextBlock Text="Текст" Style="{StaticResource MutedTextStyle}" />
-                        </StackPanel>
-                    </Grid>
-                </Border>
-
-                <Border Style="{StaticResource StatCardStyle}">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="44" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <Border Width="38" Height="38" Background="{StaticResource TealSoftBrush}" CornerRadius="8">
-                            <Grid>
-                                <Viewbox Width="17"
-                                         Height="17"
-                                         HorizontalAlignment="Center"
-                                         VerticalAlignment="Center">
-                                    <iconPacks:FontAwesome Kind="InternetExplorerBrands" Width="17" Height="17" />
-                                </Viewbox>
-                            </Grid>
-                        </Border>
-                        <StackPanel Grid.Column="1" Margin="10,0,0,0">
-                            <TextBlock Text="{Binding UrlCount}"
-                                       Foreground="{StaticResource TextBrush}"
-                                       FontSize="20"
-                                       FontWeight="SemiBold" />
-                            <TextBlock Text="Ссылки" Style="{StaticResource MutedTextStyle}" />
-                        </StackPanel>
-                    </Grid>
-                </Border>
-
-                <Border Style="{StaticResource StatCardStyle}">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="44" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <Border Width="38" Height="38" Background="{StaticResource RoseSoftBrush}" CornerRadius="8">
-                            <Grid>
-                                <Viewbox Width="17"
-                                         Height="17"
-                                         HorizontalAlignment="Center"
-                                         VerticalAlignment="Center">
-                                    <iconPacks:Material Kind="ContentCopy" Width="17" Height="17" />
-                                </Viewbox>
-                            </Grid>
-                        </Border>
-                        <StackPanel Grid.Column="1" Margin="10,0,0,0">
-                            <TextBlock Text="{Binding ImageCount}"
-                                       Foreground="{StaticResource TextBrush}"
-                                       FontSize="20"
-                                       FontWeight="SemiBold" />
-                            <TextBlock Text="Изображения" Style="{StaticResource MutedTextStyle}" />
-                        </StackPanel>
-                    </Grid>
-                </Border>
-            </WrapPanel>
-
-            <WrapPanel Grid.Row="2"
+                       Margin="0,18,0,10"
                        ClipToBounds="False">
                 <RadioButton Style="{StaticResource SectionTabButtonStyle}"
                              IsChecked="{Binding IsFilesSectionSelected, Mode=OneWay}"
@@ -866,9 +766,24 @@
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <TextBlock Text="Файлы" VerticalAlignment="Center" />
-                        <Border Grid.Column="1"
+                        <Border Style="{StaticResource SectionTabIconStyle}"
+                                Background="{StaticResource PrimarySoftBrush}">
+                            <Grid>
+                                <Viewbox Width="15"
+                                         Height="15"
+                                         HorizontalAlignment="Center"
+                                         VerticalAlignment="Center">
+                                    <iconPacks:FontAwesome Kind="FileSolid" Width="15" Height="15" />
+                                </Viewbox>
+                            </Grid>
+                        </Border>
+                        <TextBlock Grid.Column="1"
+                                   Text="Файлы"
+                                   Margin="10,0,0,0"
+                                   VerticalAlignment="Center" />
+                        <Border Grid.Column="2"
                                 Style="{StaticResource TabBadgeStyle}"
                                 Background="{StaticResource PrimarySoftBrush}">
                             <TextBlock Text="{Binding FileCount, FallbackValue=1}"
@@ -886,9 +801,24 @@
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <TextBlock Text="Текст" VerticalAlignment="Center" />
-                        <Border Grid.Column="1"
+                        <Border Style="{StaticResource SectionTabIconStyle}"
+                                Background="{StaticResource AmberSoftBrush}">
+                            <Grid>
+                                <Viewbox Width="15"
+                                         Height="15"
+                                         HorizontalAlignment="Center"
+                                         VerticalAlignment="Center">
+                                    <iconPacks:Material Kind="ContentCopy" Width="15" Height="15" />
+                                </Viewbox>
+                            </Grid>
+                        </Border>
+                        <TextBlock Grid.Column="1"
+                                   Text="Текст"
+                                   Margin="10,0,0,0"
+                                   VerticalAlignment="Center" />
+                        <Border Grid.Column="2"
                                 Style="{StaticResource TabBadgeStyle}"
                                 Background="{StaticResource AmberSoftBrush}">
                             <TextBlock Text="{Binding TextCount, FallbackValue=3}"
@@ -899,7 +829,7 @@
                 </RadioButton>
 
                 <RadioButton Style="{StaticResource SectionTabButtonStyle}"
-                             MinWidth="154"
+                             MinWidth="176"
                              IsChecked="{Binding IsUrlsSectionSelected, Mode=OneWay}"
                              Command="{Binding SelectSectionCommand}"
                              CommandParameter="2">
@@ -907,9 +837,24 @@
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <TextBlock Text="Ссылки" VerticalAlignment="Center" />
-                        <Border Grid.Column="1"
+                        <Border Style="{StaticResource SectionTabIconStyle}"
+                                Background="{StaticResource TealSoftBrush}">
+                            <Grid>
+                                <Viewbox Width="15"
+                                         Height="15"
+                                         HorizontalAlignment="Center"
+                                         VerticalAlignment="Center">
+                                    <iconPacks:FontAwesome Kind="InternetExplorerBrands" Width="15" Height="15" />
+                                </Viewbox>
+                            </Grid>
+                        </Border>
+                        <TextBlock Grid.Column="1"
+                                   Text="Ссылки"
+                                   Margin="10,0,0,0"
+                                   VerticalAlignment="Center" />
+                        <Border Grid.Column="2"
                                 Style="{StaticResource TabBadgeStyle}"
                                 Background="{StaticResource TealSoftBrush}">
                             <TextBlock Text="{Binding UrlCount, FallbackValue=2}"
@@ -920,7 +865,7 @@
                 </RadioButton>
 
                 <RadioButton Style="{StaticResource SectionTabButtonStyle}"
-                             MinWidth="204"
+                             MinWidth="224"
                              IsChecked="{Binding IsImagesSectionSelected, Mode=OneWay}"
                              Command="{Binding SelectSectionCommand}"
                              CommandParameter="3">
@@ -928,9 +873,24 @@
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <TextBlock Text="Изображения" VerticalAlignment="Center" />
-                        <Border Grid.Column="1"
+                        <Border Style="{StaticResource SectionTabIconStyle}"
+                                Background="{StaticResource RoseSoftBrush}">
+                            <Grid>
+                                <Viewbox Width="15"
+                                         Height="15"
+                                         HorizontalAlignment="Center"
+                                         VerticalAlignment="Center">
+                                    <iconPacks:Material Kind="ContentCopy" Width="15" Height="15" />
+                                </Viewbox>
+                            </Grid>
+                        </Border>
+                        <TextBlock Grid.Column="1"
+                                   Text="Изображения"
+                                   Margin="10,0,0,0"
+                                   VerticalAlignment="Center" />
+                        <Border Grid.Column="2"
                                 Style="{StaticResource TabBadgeStyle}"
                                 Background="{StaticResource RoseSoftBrush}">
                             <TextBlock Text="{Binding ImageCount, FallbackValue=2}"
@@ -941,7 +901,7 @@
                 </RadioButton>
             </WrapPanel>
 
-            <TabControl Grid.Row="3"
+            <TabControl Grid.Row="2"
                         Style="{StaticResource ModernTabControlStyle}"
                         SelectedIndex="{Binding SelectedSectionIndex, Mode=TwoWay}">
                 <TabItem>
