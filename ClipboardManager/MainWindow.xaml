@@ -218,13 +218,13 @@
             </Setter>
         </Style>
 
-        <Style x:Key="HeaderDangerIconButtonStyle"
+        <Style x:Key="HeaderIconButtonStyle"
                TargetType="{x:Type Button}">
             <Setter Property="Width" Value="42" />
             <Setter Property="Height" Value="42" />
             <Setter Property="Padding" Value="0" />
             <Setter Property="Cursor" Value="Hand" />
-            <Setter Property="Foreground" Value="#E5A1AE" />
+            <Setter Property="Foreground" Value="#C7D2FE" />
             <Setter Property="Background" Value="#263248" />
             <Setter Property="BorderBrush" Value="#46536A" />
             <Setter Property="BorderThickness" Value="1" />
@@ -243,9 +243,9 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Root" Property="Background" Value="#35283A" />
-                                <Setter TargetName="Root" Property="BorderBrush" Value="#7A4252" />
-                                <Setter Property="Foreground" Value="#F3B4C0" />
+                                <Setter TargetName="Root" Property="Background" Value="#2D3B56" />
+                                <Setter TargetName="Root" Property="BorderBrush" Value="#64748B" />
+                                <Setter Property="Foreground" Value="#E0E7FF" />
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
                                 <Setter TargetName="Root" Property="Opacity" Value="0.82" />
@@ -258,6 +258,17 @@
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
+        </Style>
+
+        <Style x:Key="HeaderDangerIconButtonStyle"
+               TargetType="{x:Type Button}"
+               BasedOn="{StaticResource HeaderIconButtonStyle}">
+            <Setter Property="Foreground" Value="#E5A1AE" />
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Foreground" Value="#F3B4C0" />
+                </Trigger>
+            </Style.Triggers>
         </Style>
 
         <Style x:Key="ActionGroupStyle" TargetType="{x:Type Border}">
@@ -952,6 +963,24 @@
                                            VerticalAlignment="Center" />
                             </StackPanel>
                         </Border>
+
+                        <Button Command="{Binding ImportCommand}"
+                                Style="{StaticResource HeaderIconButtonStyle}"
+                                Margin="0,0,8,0"
+                                ToolTip="Импорт">
+                            <Viewbox Width="19" Height="19">
+                                <iconPacks:Material Kind="FileUpload" Width="19" Height="19" />
+                            </Viewbox>
+                        </Button>
+
+                        <Button Command="{Binding ExportCommand}"
+                                Style="{StaticResource HeaderIconButtonStyle}"
+                                Margin="0,0,8,0"
+                                ToolTip="Экспорт">
+                            <Viewbox Width="19" Height="19">
+                                <iconPacks:Material Kind="FileDownload" Width="19" Height="19" />
+                            </Viewbox>
+                        </Button>
 
                         <Button Command="{Binding ClearCommand}"
                                 Style="{StaticResource HeaderDangerIconButtonStyle}"

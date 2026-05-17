@@ -78,6 +78,8 @@ public partial class MainWindow : MetroWindow
             new LinkMetadataService(),
             new ShellLauncher(),
             new WpfClipboardService(),
-            new MessageBoxUserNotificationService());
+            new MessageBoxUserNotificationService(),
+            new ClipboardTransferService(),
+            new ClipboardTransferDialogService());
     }
 }

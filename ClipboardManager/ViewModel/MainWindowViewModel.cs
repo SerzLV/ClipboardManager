@@ -24,6 +24,8 @@ public sealed class MainWindowViewModel : BaseViewModel
     private readonly IShellLauncher _shellLauncher;
     private readonly IClipboardService _clipboardService;
     private readonly IUserNotificationService _notificationService;
+    private readonly IClipboardTransferService _transferService;
+    private readonly IClipboardTransferDialogService _transferDialogService;
     private readonly ClipboardChangeSuppressor _clipboardChangeSuppressor = new();
     private readonly SemaphoreSlim _clipboardLock = new(1, 1);
     private readonly SemaphoreSlim _persistenceLock = new(1, 1);
@@ -51,15 +53,21 @@ public sealed class MainWindowViewModel : BaseViewModel
         ILinkMetadataService linkMetadataService,
         IShellLauncher shellLauncher,
         IClipboardService clipboardService,
-        IUserNotificationService notificationService)
+        IUserNotificationService notificationService,
+        IClipboardTransferService transferService,
+        IClipboardTransferDialogService transferDialogService)
     {
         _repository = repository;
         _linkMetadataService = linkMetadataService;
         _shellLauncher = shellLauncher;
         _clipboardService = clipboardService;
         _notificationService = notificationService;
+        _transferService = transferService;
+        _transferDialogService = transferDialogService;
 
         ClearCommand = new AsyncRelayCommand(_ => ClearAsync(), _ => HasClipboardItems());
+        ImportCommand = new AsyncRelayCommand(_ => ImportAsync());
+        ExportCommand = new AsyncRelayCommand(_ => ExportAsync(), _ => HasClipboardItems());
         CopyCommand = new AsyncRelayCommand(CopyAsync, CanCopy);
         DeleteCommand = new AsyncRelayCommand(DeleteAsync, CanDelete);
         TogglePinCommand = new AsyncRelayCommand(TogglePinAsync, CanTogglePin);
@@ -245,6 +253,8 @@ public sealed class MainWindowViewModel : BaseViewModel
         : "Скопируйте картинку, чтобы добавить ее в галерею.";
 
     public ICommand ClearCommand { get; }
+    public ICommand ImportCommand { get; }
+    public ICommand ExportCommand { get; }
     public ICommand CopyCommand { get; }
     public ICommand DeleteCommand { get; }
     public ICommand TogglePinCommand { get; }
@@ -544,6 +554,50 @@ public sealed class MainWindowViewModel : BaseViewModel
 
         Images.Add(imageInfo);
         addedItems.Images.Add(imageInfo);
+    }
+
+    private async Task ExportAsync(CancellationToken cancellationToken = default)
+    {
+        var filePath = _transferDialogService.ShowExportDialog();
+        if (filePath is null)
+        {
+            return;
+        }
+
+        await RunBusyAsync(async () =>
+        {
+            StatusText = "Экспорт истории...";
+            await FlushPendingSavesAsync(cancellationToken);
+
+            var data = new ClipboardData(
+                Files.ToArray(),
+                Texts.ToArray(),
+                Images.ToArray(),
+                Urls.ToArray());
+
+            await _transferService.ExportAsync(data, filePath, cancellationToken);
+            StatusText = $"История экспортирована: {HistoryTotalCount} элементов";
+        });
+    }
+
+    private async Task ImportAsync(CancellationToken cancellationToken = default)
+    {
+        var filePath = _transferDialogService.ShowImportDialog();
+        if (filePath is null)
+        {
+            return;
+        }
+
+        await RunBusyAsync(async () =>
+        {
+            StatusText = "Импорт истории...";
+            var importedData = await _transferService.ImportAsync(filePath, cancellationToken);
+            var result = await MergeImportedDataAsync(importedData, cancellationToken);
+
+            StatusText = result.PinnedUpdatedCount > 0
+                ? $"Импортировано новых: {result.AddedCount}, обновлено избранное: {result.PinnedUpdatedCount}"
+                : $"Импортировано новых элементов: {result.AddedCount}";
+        });
     }
 
     private async Task ClearAsync(CancellationToken cancellationToken = default)
@@ -855,6 +909,298 @@ public sealed class MainWindowViewModel : BaseViewModel
         await PersistAddedItemsAsync(unsavedItems, cancellationToken);
     }
 
+    private async Task<ImportMergeResult> MergeImportedDataAsync(
+        ClipboardData importedData,
+        CancellationToken cancellationToken)
+    {
+        var addedItems = new ClipboardItemsBatch();
+        var importedImageHashes = new List<string>();
+        var pinnedUpdatedCount = 0;
+
+        await _clipboardLock.WaitAsync(cancellationToken);
+
+        try
+        {
+            await _persistenceLock.WaitAsync(cancellationToken);
+
+            try
+            {
+                pinnedUpdatedCount += await MergeImportedFilesAsync(importedData.Files, addedItems, cancellationToken);
+                pinnedUpdatedCount += await MergeImportedTextsAsync(importedData.Texts, addedItems, cancellationToken);
+                pinnedUpdatedCount += await MergeImportedUrlsAsync(importedData.Urls, addedItems, cancellationToken);
+                pinnedUpdatedCount += await MergeImportedImagesAsync(
+                    importedData.Images,
+                    addedItems,
+                    importedImageHashes,
+                    cancellationToken);
+
+                await _repository.SaveItemsAsync(
+                    addedItems.Files,
+                    addedItems.Texts,
+                    addedItems.Images,
+                    addedItems.Urls,
+                    cancellationToken);
+
+                foreach (var file in addedItems.Files)
+                {
+                    Files.Add(file);
+                }
+
+                foreach (var text in addedItems.Texts)
+                {
+                    Texts.Add(text);
+                }
+
+                foreach (var url in addedItems.Urls)
+                {
+                    Urls.Add(url);
+                }
+
+                foreach (var image in addedItems.Images)
+                {
+                    Images.Add(image);
+                }
+
+                foreach (var imageHash in importedImageHashes)
+                {
+                    _knownImageHashes.Add(imageHash);
+                }
+            }
+            finally
+            {
+                _persistenceLock.Release();
+            }
+        }
+        finally
+        {
+            _clipboardLock.Release();
+        }
+
+        RebuildFavorites();
+        RefreshClipboardViews();
+        CommandManager.InvalidateRequerySuggested();
+
+        return new ImportMergeResult(addedItems.TotalCount, pinnedUpdatedCount);
+    }
+
+    private async Task<int> MergeImportedFilesAsync(
+        IReadOnlyList<FileInfoModel> importedFiles,
+        ClipboardItemsBatch addedItems,
+        CancellationToken cancellationToken)
+    {
+        var paths = Files
+            .Select(file => file.FilePath)
+            .Where(path => !string.IsNullOrWhiteSpace(path))
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var pinnedUpdatedCount = 0;
+
+        foreach (var importedFile in importedFiles)
+        {
+            var filePath = NormalizeImportedFilePath(importedFile.FilePath);
+            if (string.IsNullOrWhiteSpace(filePath))
+            {
+                continue;
+            }
+
+            var existingFile = Files.FirstOrDefault(
+                file => string.Equals(file.FilePath, filePath, StringComparison.OrdinalIgnoreCase));
+            if (existingFile is not null)
+            {
+                pinnedUpdatedCount += await PinExistingIfNeededAsync(
+                    existingFile,
+                    importedFile.IsPinned,
+                    cancellationToken);
+                continue;
+            }
+
+            if (!paths.Add(filePath))
+            {
+                continue;
+            }
+
+            importedFile.Id = 0;
+            importedFile.FilePath = filePath;
+            importedFile.Name = string.IsNullOrWhiteSpace(importedFile.Name)
+                ? Path.GetFileName(filePath)
+                : importedFile.Name;
+            addedItems.Files.Add(importedFile);
+        }
+
+        return pinnedUpdatedCount;
+    }
+
+    private async Task<int> MergeImportedTextsAsync(
+        IReadOnlyList<TextModel> importedTexts,
+        ClipboardItemsBatch addedItems,
+        CancellationToken cancellationToken)
+    {
+        var texts = Texts
+            .Select(text => text.Text)
+            .ToHashSet(StringComparer.Ordinal);
+        var pinnedUpdatedCount = 0;
+
+        foreach (var importedText in importedTexts)
+        {
+            if (string.IsNullOrWhiteSpace(importedText.Text))
+            {
+                continue;
+            }
+
+            var existingText = Texts.FirstOrDefault(text => text.Text == importedText.Text);
+            if (existingText is not null)
+            {
+                pinnedUpdatedCount += await PinExistingIfNeededAsync(
+                    existingText,
+                    importedText.IsPinned,
+                    cancellationToken);
+                continue;
+            }
+
+            if (!texts.Add(importedText.Text))
+            {
+                continue;
+            }
+
+            importedText.Id = 0;
+            addedItems.Texts.Add(importedText);
+        }
+
+        return pinnedUpdatedCount;
+    }
+
+    private async Task<int> MergeImportedUrlsAsync(
+        IReadOnlyList<UrlModel> importedUrls,
+        ClipboardItemsBatch addedItems,
+        CancellationToken cancellationToken)
+    {
+        var urls = Urls
+            .Select(url => url.Url)
+            .Where(url => !string.IsNullOrWhiteSpace(url))
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var pinnedUpdatedCount = 0;
+
+        foreach (var importedUrl in importedUrls)
+        {
+            if (string.IsNullOrWhiteSpace(importedUrl.Url))
+            {
+                continue;
+            }
+
+            var existingUrl = Urls.FirstOrDefault(
+                url => string.Equals(url.Url, importedUrl.Url, StringComparison.OrdinalIgnoreCase));
+            if (existingUrl is not null)
+            {
+                pinnedUpdatedCount += await PinExistingIfNeededAsync(
+                    existingUrl,
+                    importedUrl.IsPinned,
+                    cancellationToken);
+                continue;
+            }
+
+            if (!urls.Add(importedUrl.Url))
+            {
+                continue;
+            }
+
+            importedUrl.Id = 0;
+            importedUrl.Title = string.IsNullOrWhiteSpace(importedUrl.Title)
+                ? importedUrl.Url
+                : importedUrl.Title;
+            addedItems.Urls.Add(importedUrl);
+        }
+
+        return pinnedUpdatedCount;
+    }
+
+    private async Task<int> MergeImportedImagesAsync(
+        IReadOnlyList<ImageModel> importedImages,
+        ClipboardItemsBatch addedItems,
+        ICollection<string> importedImageHashes,
+        CancellationToken cancellationToken)
+    {
+        var existingImages = Images.ToArray();
+        var imageByHash = await Task.Run(
+            () =>
+            {
+                var hashes = new Dictionary<string, ImageModel>(StringComparer.Ordinal);
+                foreach (var image in existingImages)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    var imageHash = TryCreateImageHash(image);
+                    if (imageHash is not null)
+                    {
+                        hashes.TryAdd(imageHash, image);
+                    }
+                }
+
+                return hashes;
+            },
+            cancellationToken);
+        var importedImagesWithHashes = await Task.Run(
+            () =>
+            {
+                return importedImages
+                    .Select(image =>
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+                        return (Image: image, Hash: TryCreateImageHash(image));
+                    })
+                    .ToArray();
+            },
+            cancellationToken);
+
+        var pinnedUpdatedCount = 0;
+
+        foreach (var (importedImage, imageHash) in importedImagesWithHashes)
+        {
+            if (importedImage.ImageSource is null || importedImage.ImageData.Length == 0)
+            {
+                continue;
+            }
+
+            if (imageHash is null)
+            {
+                continue;
+            }
+
+            if (imageByHash.TryGetValue(imageHash, out var existingImage))
+            {
+                pinnedUpdatedCount += await PinExistingIfNeededAsync(
+                    existingImage,
+                    importedImage.IsPinned,
+                    cancellationToken);
+                continue;
+            }
+
+            if (importedImageHashes.Contains(imageHash))
+            {
+                continue;
+            }
+
+            importedImage.Id = 0;
+            importedImageHashes.Add(imageHash);
+            addedItems.Images.Add(importedImage);
+        }
+
+        return pinnedUpdatedCount;
+    }
+
+    private async Task<int> PinExistingIfNeededAsync(
+        IPinnedClipboardItem existingItem,
+        bool shouldPin,
+        CancellationToken cancellationToken)
+    {
+        if (!shouldPin || existingItem.IsPinned)
+        {
+            return 0;
+        }
+
+        existingItem.IsPinned = true;
+        await _repository.UpdatePinAsync(existingItem, cancellationToken);
+        return 1;
+    }
+
     private static async Task PrepareImagesForStorageAsync(
         IReadOnlyCollection<ImageModel> images,
         CancellationToken cancellationToken)
@@ -1108,6 +1454,23 @@ public sealed class MainWindowViewModel : BaseViewModel
             || values.Any(value => value?.Contains(query, StringComparison.CurrentCultureIgnoreCase) == true);
     }
 
+    private static string NormalizeImportedFilePath(string filePath)
+    {
+        if (string.IsNullOrWhiteSpace(filePath))
+        {
+            return string.Empty;
+        }
+
+        try
+        {
+            return Path.GetFullPath(filePath.Trim());
+        }
+        catch
+        {
+            return filePath.Trim();
+        }
+    }
+
     private string? TryCreateImageHash(ImageModel image)
     {
         return image.ImageSource is null
@@ -1207,6 +1570,8 @@ internal sealed class ClipboardItemsBatch
     public int TotalCount => Files.Count + Texts.Count + Images.Count + Urls.Count;
     public bool HasItems => TotalCount > 0;
 }
+
+internal readonly record struct ImportMergeResult(int AddedCount, int PinnedUpdatedCount);
 
 public sealed class FavoriteClipboardItem
 {
