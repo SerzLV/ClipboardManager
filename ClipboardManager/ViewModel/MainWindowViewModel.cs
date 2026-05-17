@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Globalization;
 using System.IO;
 using System.Text.RegularExpressions;
@@ -26,6 +27,9 @@ public sealed class MainWindowViewModel : BaseViewModel
 
     private ClipboardContentSignature? _lastHandledClipboardSignature;
     private bool _isBusy;
+    private int _selectedSectionIndex;
+    private string _statusText = "Мониторинг буфера обмена активен";
+    private DateTime? _lastActivityAt;
 
     public MainWindowViewModel()
         : this(new ClipboardRepository(), new LinkMetadataService(), new ShellLauncher(), new WpfClipboardService())
@@ -49,6 +53,12 @@ public sealed class MainWindowViewModel : BaseViewModel
         DeleteCommand = new AsyncRelayCommand(DeleteAsync, CanDelete);
         OpenLinkCommand = new RelayCommand(OpenLink, CanOpenLink);
         OpenFileCommand = new RelayCommand(OpenFile, CanOpenFile);
+        SelectSectionCommand = new RelayCommand(SelectSection);
+
+        Files.CollectionChanged += ClipboardCollectionChanged;
+        Texts.CollectionChanged += ClipboardCollectionChanged;
+        Urls.CollectionChanged += ClipboardCollectionChanged;
+        Images.CollectionChanged += ClipboardCollectionChanged;
     }
 
     public ObservableCollection<FileInfoModel> Files { get; } = [];
@@ -56,12 +66,90 @@ public sealed class MainWindowViewModel : BaseViewModel
     public ObservableCollection<UrlModel> Urls { get; } = [];
     public ObservableCollection<ImageModel> Images { get; } = [];
 
+    public int SelectedSectionIndex
+    {
+        get => _selectedSectionIndex;
+        set
+        {
+            if (_selectedSectionIndex == value)
+            {
+                return;
+            }
+
+            _selectedSectionIndex = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(IsFilesSectionSelected));
+            OnPropertyChanged(nameof(IsTextsSectionSelected));
+            OnPropertyChanged(nameof(IsUrlsSectionSelected));
+            OnPropertyChanged(nameof(IsImagesSectionSelected));
+        }
+    }
+
+    public bool IsFilesSectionSelected => SelectedSectionIndex == 0;
+    public bool IsTextsSectionSelected => SelectedSectionIndex == 1;
+    public bool IsUrlsSectionSelected => SelectedSectionIndex == 2;
+    public bool IsImagesSectionSelected => SelectedSectionIndex == 3;
+
+    public string StatusText
+    {
+        get => _statusText;
+        private set
+        {
+            if (_statusText == value)
+            {
+                return;
+            }
+
+            _statusText = value;
+            OnPropertyChanged();
+        }
+    }
+
+    public DateTime? LastActivityAt
+    {
+        get => _lastActivityAt;
+        private set
+        {
+            if (_lastActivityAt == value)
+            {
+                return;
+            }
+
+            _lastActivityAt = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(LastActivityText));
+        }
+    }
+
+    public string LastActivityText => LastActivityAt is null
+        ? "Пока нет новых записей"
+        : $"Последнее обновление: {LastActivityAt:HH:mm:ss}";
+
+    public int FileCount => Files.Count;
+    public int TextCount => Texts.Count;
+    public int UrlCount => Urls.Count;
+    public int ImageCount => Images.Count;
+    public int TotalCount => FileCount + TextCount + UrlCount + ImageCount;
+
+    public bool HasFiles => FileCount > 0;
+    public bool HasTexts => TextCount > 0;
+    public bool HasUrls => UrlCount > 0;
+    public bool HasImages => ImageCount > 0;
+    public bool HasItems => TotalCount > 0;
+
+    public bool IsFilesEmpty => !HasFiles;
+    public bool IsTextsEmpty => !HasTexts;
+    public bool IsUrlsEmpty => !HasUrls;
+    public bool IsImagesEmpty => !HasImages;
+    public bool IsHistoryEmpty => !HasItems;
+
     public ICommand SaveCommand { get; }
     public ICommand ClearCommand { get; }
     public ICommand CopyCommand { get; }
     public ICommand DeleteCommand { get; }
     public ICommand OpenLinkCommand { get; }
     public ICommand OpenFileCommand { get; }
+    public ICommand SelectSectionCommand { get; }
 
     public bool IsBusy
     {
@@ -96,6 +184,9 @@ public sealed class MainWindowViewModel : BaseViewModel
             }
 
             Images.ReplaceWith(data.Images);
+            StatusText = HasItems
+                ? $"История загружена: {TotalCount} элементов"
+                : "История пуста, можно копировать новые данные";
             CommandManager.InvalidateRequerySuggested();
         });
     }
@@ -125,9 +216,17 @@ public sealed class MainWindowViewModel : BaseViewModel
 
             _lastHandledClipboardSignature = signature;
 
+            var beforeCount = TotalCount;
             ProcessFileDropList();
             await ProcessTextAsync(cancellationToken);
             ProcessImage(signature);
+
+            if (TotalCount > beforeCount)
+            {
+                LastActivityAt = DateTime.Now;
+                StatusText = $"Добавлено новых элементов: {TotalCount - beforeCount}";
+            }
+
             CommandManager.InvalidateRequerySuggested();
         }
         catch (Exception ex)
@@ -159,6 +258,8 @@ public sealed class MainWindowViewModel : BaseViewModel
                     Images,
                     Urls,
                     cancellationToken);
+
+                StatusText = "История сохранена";
             });
         }
         finally
@@ -272,6 +373,8 @@ public sealed class MainWindowViewModel : BaseViewModel
             _knownImageHashes.Clear();
             _lastHandledClipboardSignature = null;
             _clipboardChangeSuppressor.Clear();
+            LastActivityAt = null;
+            StatusText = "История очищена";
             CommandManager.InvalidateRequerySuggested();
         });
     }
@@ -317,6 +420,7 @@ public sealed class MainWindowViewModel : BaseViewModel
                     break;
             }
 
+            StatusText = "Элемент удален";
             CommandManager.InvalidateRequerySuggested();
         }
         catch (Exception ex)
@@ -346,6 +450,7 @@ public sealed class MainWindowViewModel : BaseViewModel
             {
                 _clipboardChangeSuppressor.Suppress(signature);
                 _lastHandledClipboardSignature = signature;
+                StatusText = "Скопировано в буфер обмена";
             }
         }
         catch (Exception ex)
@@ -359,6 +464,7 @@ public sealed class MainWindowViewModel : BaseViewModel
         if (parameter is UrlModel url)
         {
             TryLaunch(() => _shellLauncher.OpenUrl(url.Url));
+            StatusText = "Ссылка открыта";
         }
     }
 
@@ -367,6 +473,21 @@ public sealed class MainWindowViewModel : BaseViewModel
         if (parameter is FileInfoModel file)
         {
             TryLaunch(() => _shellLauncher.OpenFile(file.FilePath));
+            StatusText = "Файл открыт";
+        }
+    }
+
+    private void SelectSection(object? parameter)
+    {
+        if (parameter is int index)
+        {
+            SelectedSectionIndex = index;
+            return;
+        }
+
+        if (parameter is string value && int.TryParse(value, CultureInfo.InvariantCulture, out index))
+        {
+            SelectedSectionIndex = index;
         }
     }
 
@@ -401,7 +522,32 @@ public sealed class MainWindowViewModel : BaseViewModel
 
     private bool HasClipboardItems()
     {
-        return Files.Count > 0 || Texts.Count > 0 || Images.Count > 0 || Urls.Count > 0;
+        return HasItems;
+    }
+
+    private void ClipboardCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        RaiseClipboardStateChanged();
+        CommandManager.InvalidateRequerySuggested();
+    }
+
+    private void RaiseClipboardStateChanged()
+    {
+        OnPropertyChanged(nameof(FileCount));
+        OnPropertyChanged(nameof(TextCount));
+        OnPropertyChanged(nameof(UrlCount));
+        OnPropertyChanged(nameof(ImageCount));
+        OnPropertyChanged(nameof(TotalCount));
+        OnPropertyChanged(nameof(HasFiles));
+        OnPropertyChanged(nameof(HasTexts));
+        OnPropertyChanged(nameof(HasUrls));
+        OnPropertyChanged(nameof(HasImages));
+        OnPropertyChanged(nameof(HasItems));
+        OnPropertyChanged(nameof(IsFilesEmpty));
+        OnPropertyChanged(nameof(IsTextsEmpty));
+        OnPropertyChanged(nameof(IsUrlsEmpty));
+        OnPropertyChanged(nameof(IsImagesEmpty));
+        OnPropertyChanged(nameof(IsHistoryEmpty));
     }
 
     private void AddKnownImageHash(ImageModel image)
