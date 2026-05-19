@@ -24,13 +24,8 @@ public abstract class ClipboardItemModel : IPinnedClipboardItem, INotifyProperty
 
             _isPinned = value;
             OnPropertyChanged();
-            OnPropertyChanged(nameof(PinToolTip));
         }
     }
-
-    public string PinToolTip => IsPinned
-        ? "Убрать из избранного"
-        : "Добавить в избранное";
 
     public event PropertyChangedEventHandler? PropertyChanged;
 

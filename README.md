@@ -21,26 +21,17 @@ The app is designed as a quiet productivity tool: fast search, one-click copy ba
 - Import and export through `.clipboard.json` backup files.
 - Duplicate protection for copied files, texts, URLs, and images.
 - Copy, open, delete, clear, import, and export actions from the UI.
+- Supports ENG/РУ languages.
 
 ## Screenshots
 
 ### Overview
 
-![ClipboardManager overview](docs/screenshots/overview.png)
+![ClipboardManager overview](docs/screenshots/main.png)
 
-### Main Sections
+### Image gallery
 
-| Files | Text |
-| --- | --- |
-| ![Files section](docs/screenshots/files-section.png) | ![Text section](docs/screenshots/text-section.png) |
-
-| Links | Images |
-| --- | --- |
-| ![Links section](docs/screenshots/links-section.png) | ![Images gallery](docs/screenshots/images-gallery.png) |
-
-### Search
-
-![Search results](docs/screenshots/search-results.png)
+![Image gallery](docs/screenshots/image_open.png)
 
 ## Tech Stack
 

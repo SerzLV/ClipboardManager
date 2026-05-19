@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Threading;
 using ClipboardManager.Data;
 using ClipboardManager.Helper;
+using ClipboardManager.Localization;
 using ClipboardManager.Services;
 using ClipboardManager.ViewModels;
 using MahApps.Metro.Controls;
@@ -73,13 +74,16 @@ public partial class MainWindow : MetroWindow
 
     private static MainWindowViewModel CreateViewModel()
     {
+        var localization = new LocalizationService(LanguagePreferenceStore.Load());
+
         return new MainWindowViewModel(
             new ClipboardRepository(),
             new LinkMetadataService(),
             new ShellLauncher(),
             new WpfClipboardService(),
             new MessageBoxUserNotificationService(),
-            new ClipboardTransferService(),
-            new ClipboardTransferDialogService());
+            new ClipboardTransferService(localization),
+            new ClipboardTransferDialogService(localization),
+            localization);
     }
 }

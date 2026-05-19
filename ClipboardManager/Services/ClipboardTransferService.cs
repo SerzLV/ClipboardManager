@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Text.Json;
 using ClipboardManager.Data;
 using ClipboardManager.Helper;
+using ClipboardManager.Localization;
 using ClipboardManager.Models;
 
 namespace ClipboardManager.Services;
@@ -25,6 +26,13 @@ public sealed class ClipboardTransferService : IClipboardTransferService
     {
         WriteIndented = true
     };
+
+    private readonly LocalizationService _localization;
+
+    public ClipboardTransferService(LocalizationService localization)
+    {
+        _localization = localization;
+    }
 
     public async Task ExportAsync(
         ClipboardData data,
@@ -54,7 +62,7 @@ public sealed class ClipboardTransferService : IClipboardTransferService
 
         if (document is null || document.Version < 1)
         {
-            throw new InvalidDataException("Файл импорта имеет неподдерживаемый формат.");
+            throw new InvalidDataException(_localization.UnsupportedImportFormatMessage);
         }
 
         return await Task.Run(() => CreateData(document), cancellationToken);

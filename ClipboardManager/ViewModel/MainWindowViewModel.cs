@@ -7,6 +7,7 @@ using System.Windows.Input;
 using System.Windows.Data;
 using ClipboardManager.Data;
 using ClipboardManager.Helper;
+using ClipboardManager.Localization;
 using ClipboardManager.Models;
 using ClipboardManager.Services;
 
@@ -26,6 +27,7 @@ public sealed class MainWindowViewModel : BaseViewModel
     private readonly IUserNotificationService _notificationService;
     private readonly IClipboardTransferService _transferService;
     private readonly IClipboardTransferDialogService _transferDialogService;
+    private readonly LocalizationService _localization;
     private readonly ClipboardChangeSuppressor _clipboardChangeSuppressor = new();
     private readonly SemaphoreSlim _clipboardLock = new(1, 1);
     private readonly SemaphoreSlim _persistenceLock = new(1, 1);
@@ -34,7 +36,7 @@ public sealed class MainWindowViewModel : BaseViewModel
     private ClipboardContentSignature? _lastHandledClipboardSignature;
     private bool _isBusy;
     private int _selectedSectionIndex;
-    private string _statusText = "Мониторинг буфера обмена активен";
+    private Func<LocalizationService, string> _statusTextFactory = text => text.MonitoringActiveStatus;
     private string _searchText = string.Empty;
     private ImageModel? _previewImage;
     private object? _previewImageSource;
@@ -55,7 +57,8 @@ public sealed class MainWindowViewModel : BaseViewModel
         IClipboardService clipboardService,
         IUserNotificationService notificationService,
         IClipboardTransferService transferService,
-        IClipboardTransferDialogService transferDialogService)
+        IClipboardTransferDialogService transferDialogService,
+        LocalizationService localization)
     {
         _repository = repository;
         _linkMetadataService = linkMetadataService;
@@ -64,6 +67,7 @@ public sealed class MainWindowViewModel : BaseViewModel
         _notificationService = notificationService;
         _transferService = transferService;
         _transferDialogService = transferDialogService;
+        _localization = localization;
 
         ClearCommand = new AsyncRelayCommand(_ => ClearAsync(), _ => HasClipboardItems());
         ImportCommand = new AsyncRelayCommand(_ => ImportAsync());
@@ -81,6 +85,7 @@ public sealed class MainWindowViewModel : BaseViewModel
         ResetImageZoomCommand = new RelayCommand(_ => PreviewZoom = 1.0, _ => IsImagePreviewOpen && Math.Abs(PreviewZoom - 1.0) > 0.001);
         SelectSectionCommand = new RelayCommand(SelectSection);
         ClearSearchCommand = new RelayCommand(_ => SearchText = string.Empty, _ => IsSearchActive);
+        ChangeLanguageCommand = new RelayCommand(ChangeLanguage);
 
         FilesView = CreateClipboardView(Files, MatchesFile);
         TextsView = CreateClipboardView(Texts, MatchesText);
@@ -108,6 +113,38 @@ public sealed class MainWindowViewModel : BaseViewModel
     public ICollectionView ImagesView { get; }
     public ICollectionView FavoritesView { get; }
 
+    public LocalizationService L => _localization;
+
+    public string SelectedLanguageCode
+    {
+        get => AppLanguageParser.ToCode(_localization.Language);
+        set
+        {
+            if (!AppLanguageParser.TryParse(value, out var language) || language == _localization.Language)
+            {
+                return;
+            }
+
+            _localization.UseLanguage(language);
+            try
+            {
+                LanguagePreferenceStore.Save(language);
+            }
+            catch (Exception ex)
+            {
+                ShowError(_localization.OperationFailedTitle, ex);
+            }
+
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(IsEnglishLanguageSelected));
+            OnPropertyChanged(nameof(IsRussianLanguageSelected));
+            RefreshLocalizedState();
+        }
+    }
+
+    public bool IsEnglishLanguageSelected => _localization.Language == AppLanguage.English;
+    public bool IsRussianLanguageSelected => _localization.Language == AppLanguage.Russian;
+
     public int SelectedSectionIndex
     {
         get => _selectedSectionIndex;
@@ -134,20 +171,7 @@ public sealed class MainWindowViewModel : BaseViewModel
     public bool IsUrlsSectionSelected => SelectedSectionIndex == 3;
     public bool IsImagesSectionSelected => SelectedSectionIndex == 4;
 
-    public string StatusText
-    {
-        get => _statusText;
-        private set
-        {
-            if (_statusText == value)
-            {
-                return;
-            }
-
-            _statusText = value;
-            OnPropertyChanged();
-        }
-    }
+    public string StatusText => _statusTextFactory(_localization);
 
     public DateTime? LastActivityAt
     {
@@ -166,8 +190,8 @@ public sealed class MainWindowViewModel : BaseViewModel
     }
 
     public string LastActivityText => LastActivityAt is null
-        ? "Пока нет новых записей"
-        : $"Последнее обновление: {LastActivityAt:HH:mm:ss}";
+        ? _localization.NoNewEntriesText
+        : _localization.LastActivityText(LastActivityAt.Value);
 
     public string SearchText
     {
@@ -205,7 +229,7 @@ public sealed class MainWindowViewModel : BaseViewModel
     public bool IsSearchPlaceholderVisible => !IsSearchActive;
 
     public string SearchResultText => IsSearchActive
-        ? $"Найдено: {FilteredTotalCount} из {HistoryTotalCount}"
+        ? _localization.SearchResultText(FilteredTotalCount, HistoryTotalCount)
         : string.Empty;
 
     public int FileCount => IsSearchActive ? _filteredFileCount : Files.Count;
@@ -231,26 +255,16 @@ public sealed class MainWindowViewModel : BaseViewModel
     public bool IsImagesEmpty => !HasImages;
     public bool IsHistoryEmpty => !HasItems;
 
-    public string FavoritesEmptyTitle => IsSearchActive ? "В избранном ничего не найдено" : "Избранного пока нет";
-    public string FavoritesEmptyDescription => IsSearchActive
-        ? "Попробуйте другой запрос или посмотрите исходные вкладки."
-        : "Нажмите звезду на важной записи, чтобы она появилась здесь.";
-    public string FilesEmptyTitle => IsSearchActive ? "В файлах ничего не найдено" : "Файлов пока нет";
-    public string FilesEmptyDescription => IsSearchActive
-        ? "Попробуйте другой запрос или проверьте соседние разделы."
-        : "Скопируйте файл в системе, и он появится здесь.";
-    public string TextsEmptyTitle => IsSearchActive ? "В тексте ничего не найдено" : "Текстовых записей пока нет";
-    public string TextsEmptyDescription => IsSearchActive
-        ? "Поиск проверяет содержимое сохраненных текстовых фрагментов."
-        : "Скопируйте любой текст, чтобы добавить его в историю.";
-    public string UrlsEmptyTitle => IsSearchActive ? "В ссылках ничего не найдено" : "Ссылок пока нет";
-    public string UrlsEmptyDescription => IsSearchActive
-        ? "Поиск идет по адресу, заголовку и описанию ссылки."
-        : "Скопируйте URL, чтобы увидеть карточку ссылки.";
-    public string ImagesEmptyTitle => IsSearchActive ? "В изображениях ничего не найдено" : "Изображений пока нет";
-    public string ImagesEmptyDescription => IsSearchActive
-        ? "Для изображений поиск проверяет имя сохраненной записи."
-        : "Скопируйте картинку, чтобы добавить ее в галерею.";
+    public string FavoritesEmptyTitle => _localization.FavoritesEmptyTitle(IsSearchActive);
+    public string FavoritesEmptyDescription => _localization.FavoritesEmptyDescription(IsSearchActive);
+    public string FilesEmptyTitle => _localization.FilesEmptyTitle(IsSearchActive);
+    public string FilesEmptyDescription => _localization.FilesEmptyDescription(IsSearchActive);
+    public string TextsEmptyTitle => _localization.TextsEmptyTitle(IsSearchActive);
+    public string TextsEmptyDescription => _localization.TextsEmptyDescription(IsSearchActive);
+    public string UrlsEmptyTitle => _localization.UrlsEmptyTitle(IsSearchActive);
+    public string UrlsEmptyDescription => _localization.UrlsEmptyDescription(IsSearchActive);
+    public string ImagesEmptyTitle => _localization.ImagesEmptyTitle(IsSearchActive);
+    public string ImagesEmptyDescription => _localization.ImagesEmptyDescription(IsSearchActive);
 
     public ICommand ClearCommand { get; }
     public ICommand ImportCommand { get; }
@@ -268,6 +282,7 @@ public sealed class MainWindowViewModel : BaseViewModel
     public ICommand ResetImageZoomCommand { get; }
     public ICommand SelectSectionCommand { get; }
     public ICommand ClearSearchCommand { get; }
+    public ICommand ChangeLanguageCommand { get; }
 
     public bool IsBusy
     {
@@ -385,9 +400,9 @@ public sealed class MainWindowViewModel : BaseViewModel
             Images.ReplaceRange(data.Images);
             RebuildFavorites();
             RefreshClipboardViews();
-            StatusText = HasItems
-                ? $"История загружена: {TotalCount} элементов"
-                : "История пуста, можно копировать новые данные";
+            SetStatus(HasItems
+                ? text => text.HistoryLoadedStatus(TotalCount)
+                : text => text.HistoryEmptyStatus);
             CommandManager.InvalidateRequerySuggested();
         });
     }
@@ -436,7 +451,7 @@ public sealed class MainWindowViewModel : BaseViewModel
             if (addedItems.HasItems)
             {
                 LastActivityAt = DateTime.Now;
-                StatusText = $"Добавлено новых элементов: {addedItems.TotalCount}";
+                SetStatus(text => text.AddedNewItemsStatus(addedItems.TotalCount));
                 CommandManager.InvalidateRequerySuggested();
 
                 await PersistAddedItemsAsync(addedItems, cancellationToken);
@@ -444,7 +459,7 @@ public sealed class MainWindowViewModel : BaseViewModel
         }
         catch (Exception ex)
         {
-            ShowError("Clipboard processing failed", ex);
+            ShowError(_localization.ClipboardProcessingFailedTitle, ex);
         }
         finally
         {
@@ -566,7 +581,7 @@ public sealed class MainWindowViewModel : BaseViewModel
 
         await RunBusyAsync(async () =>
         {
-            StatusText = "Экспорт истории...";
+            SetStatus(text => text.ExportingHistoryStatus);
             await FlushPendingSavesAsync(cancellationToken);
 
             var data = new ClipboardData(
@@ -576,7 +591,7 @@ public sealed class MainWindowViewModel : BaseViewModel
                 Urls.ToArray());
 
             await _transferService.ExportAsync(data, filePath, cancellationToken);
-            StatusText = $"История экспортирована: {HistoryTotalCount} элементов";
+            SetStatus(text => text.HistoryExportedStatus(HistoryTotalCount));
         });
     }
 
@@ -590,13 +605,13 @@ public sealed class MainWindowViewModel : BaseViewModel
 
         await RunBusyAsync(async () =>
         {
-            StatusText = "Импорт истории...";
+            SetStatus(text => text.ImportingHistoryStatus);
             var importedData = await _transferService.ImportAsync(filePath, cancellationToken);
             var result = await MergeImportedDataAsync(importedData, cancellationToken);
 
-            StatusText = result.PinnedUpdatedCount > 0
-                ? $"Импортировано новых: {result.AddedCount}, обновлено избранное: {result.PinnedUpdatedCount}"
-                : $"Импортировано новых элементов: {result.AddedCount}";
+            SetStatus(result.PinnedUpdatedCount > 0
+                ? text => text.ImportedWithPinnedStatus(result.AddedCount, result.PinnedUpdatedCount)
+                : text => text.ImportedItemsStatus(result.AddedCount));
         });
     }
 
@@ -621,7 +636,7 @@ public sealed class MainWindowViewModel : BaseViewModel
                     _lastHandledClipboardSignature = null;
                     _clipboardChangeSuppressor.Clear();
                     LastActivityAt = null;
-                    StatusText = "История очищена";
+                    SetStatus(text => text.HistoryClearedStatus);
                     CommandManager.InvalidateRequerySuggested();
                 }
                 finally
@@ -699,12 +714,12 @@ public sealed class MainWindowViewModel : BaseViewModel
                 _clipboardLock.Release();
             }
 
-            StatusText = "Элемент удален";
+            SetStatus(text => text.ItemDeletedStatus);
             CommandManager.InvalidateRequerySuggested();
         }
         catch (Exception ex)
         {
-            ShowError("Delete failed", ex);
+            ShowError(_localization.DeleteFailedTitle, ex);
         }
     }
 
@@ -729,12 +744,12 @@ public sealed class MainWindowViewModel : BaseViewModel
             {
                 _clipboardChangeSuppressor.Suppress(signature);
                 _lastHandledClipboardSignature = signature;
-                StatusText = "Скопировано в буфер обмена";
+                SetStatus(text => text.CopiedStatus);
             }
         }
         catch (Exception ex)
         {
-            ShowError("Copy failed", ex);
+            ShowError(_localization.CopyFailedTitle, ex);
         }
     }
 
@@ -743,7 +758,7 @@ public sealed class MainWindowViewModel : BaseViewModel
         if (parameter is UrlModel url)
         {
             TryLaunch(() => _shellLauncher.OpenUrl(url.Url));
-            StatusText = "Ссылка открыта";
+            SetStatus(text => text.LinkOpenedStatus);
         }
     }
 
@@ -752,7 +767,7 @@ public sealed class MainWindowViewModel : BaseViewModel
         if (parameter is FileInfoModel file)
         {
             TryLaunch(() => _shellLauncher.OpenFile(file.FilePath));
-            StatusText = "Файл открыт";
+            SetStatus(text => text.FileOpenedStatus);
         }
     }
 
@@ -796,7 +811,7 @@ public sealed class MainWindowViewModel : BaseViewModel
         PreviewImageName = image.Name;
         PreviewZoom = 1.0;
         IsImagePreviewOpen = true;
-        StatusText = "Изображение открыто";
+        SetStatus(text => text.ImageOpenedStatus);
     }
 
     private void CloseImagePreview()
@@ -827,6 +842,14 @@ public sealed class MainWindowViewModel : BaseViewModel
         }
     }
 
+    private void ChangeLanguage(object? parameter)
+    {
+        if (parameter is string languageCode)
+        {
+            SelectedLanguageCode = languageCode;
+        }
+    }
+
     private async Task TogglePinAsync(object? parameter)
     {
         if (parameter is not IPinnedClipboardItem item)
@@ -842,16 +865,16 @@ public sealed class MainWindowViewModel : BaseViewModel
         try
         {
             await _repository.UpdatePinAsync(item);
-            StatusText = item.IsPinned
-                ? "Добавлено в избранное"
-                : "Удалено из избранного";
+            SetStatus(item.IsPinned
+                ? text => text.AddedToFavoritesStatus
+                : text => text.RemovedFromFavoritesStatus);
         }
         catch (Exception ex)
         {
             item.IsPinned = previousValue;
             RebuildFavorites();
             RefreshClipboardViews();
-            ShowError("Pin update failed", ex);
+            ShowError(_localization.PinUpdateFailedTitle, ex);
         }
         finally
         {
@@ -881,11 +904,11 @@ public sealed class MainWindowViewModel : BaseViewModel
                 addedItems.Urls,
                 cancellationToken);
 
-            StatusText = $"Автосохранено элементов: {addedItems.TotalCount}";
+            SetStatus(text => text.AutoSavedItemsStatus(addedItems.TotalCount));
         }
         catch (Exception ex)
         {
-            ShowError("Auto-save failed", ex);
+            ShowError(_localization.AutoSaveFailedTitle, ex);
         }
         finally
         {
@@ -1356,6 +1379,31 @@ public sealed class MainWindowViewModel : BaseViewModel
         OnPropertyChanged(nameof(IsUrlsEmpty));
         OnPropertyChanged(nameof(IsImagesEmpty));
         OnPropertyChanged(nameof(IsHistoryEmpty));
+        RaiseLocalizedTextChanged();
+    }
+
+    private void RaiseLocalizedTextChanged()
+    {
+        OnPropertyChanged(nameof(StatusText));
+        OnPropertyChanged(nameof(LastActivityText));
+        OnPropertyChanged(nameof(SearchResultText));
+        OnPropertyChanged(nameof(FilesEmptyTitle));
+        OnPropertyChanged(nameof(FilesEmptyDescription));
+        OnPropertyChanged(nameof(FavoritesEmptyTitle));
+        OnPropertyChanged(nameof(FavoritesEmptyDescription));
+        OnPropertyChanged(nameof(TextsEmptyTitle));
+        OnPropertyChanged(nameof(TextsEmptyDescription));
+        OnPropertyChanged(nameof(UrlsEmptyTitle));
+        OnPropertyChanged(nameof(UrlsEmptyDescription));
+        OnPropertyChanged(nameof(ImagesEmptyTitle));
+        OnPropertyChanged(nameof(ImagesEmptyDescription));
+    }
+
+    private void RefreshLocalizedState()
+    {
+        RebuildFavorites();
+        RefreshClipboardViews();
+        RaiseLocalizedTextChanged();
     }
 
     private ICollectionView CreateClipboardView<T>(
@@ -1400,16 +1448,16 @@ public sealed class MainWindowViewModel : BaseViewModel
     {
         var favorites = Files
             .Where(x => x.IsPinned)
-            .Select(x => new FavoriteClipboardItem(x))
+            .Select(x => new FavoriteClipboardItem(x, _localization))
             .Concat(Texts
                 .Where(x => x.IsPinned)
-                .Select(x => new FavoriteClipboardItem(x)))
+                .Select(x => new FavoriteClipboardItem(x, _localization)))
             .Concat(Urls
                 .Where(x => x.IsPinned)
-                .Select(x => new FavoriteClipboardItem(x)))
+                .Select(x => new FavoriteClipboardItem(x, _localization)))
             .Concat(Images
                 .Where(x => x.IsPinned)
-                .Select(x => new FavoriteClipboardItem(x)))
+                .Select(x => new FavoriteClipboardItem(x, _localization)))
             .ToArray();
 
         Favorites.ReplaceRange(favorites);
@@ -1478,6 +1526,12 @@ public sealed class MainWindowViewModel : BaseViewModel
             : _clipboardService.CreateImageSignature(image.ImageSource).Value;
     }
 
+    private void SetStatus(Func<LocalizationService, string> statusTextFactory)
+    {
+        _statusTextFactory = statusTextFactory;
+        OnPropertyChanged(nameof(StatusText));
+    }
+
     private async Task RunBusyAsync(Func<Task> action)
     {
         try
@@ -1487,7 +1541,7 @@ public sealed class MainWindowViewModel : BaseViewModel
         }
         catch (Exception ex)
         {
-            ShowError("Operation failed", ex);
+            ShowError(_localization.OperationFailedTitle, ex);
         }
         finally
         {
@@ -1533,7 +1587,7 @@ public sealed class MainWindowViewModel : BaseViewModel
         }
         catch (Exception ex)
         {
-            ShowError("Open failed", ex);
+            ShowError(_localization.OpenFailedTitle, ex);
         }
     }
 
@@ -1577,29 +1631,31 @@ public sealed class FavoriteClipboardItem
 {
     private const int TitleLimit = 64;
     private const int DescriptionLimit = 180;
+    private readonly LocalizationService _localization;
 
-    public FavoriteClipboardItem(ClipboardItemModel source)
+    public FavoriteClipboardItem(ClipboardItemModel source, LocalizationService localization)
     {
         Source = source;
+        _localization = localization;
 
         switch (source)
         {
             case FileInfoModel file:
-                TypeLabel = "Файл";
+                TypeLabel = localization.FileTypeLabel;
                 Title = Shorten(file.Name, TitleLimit);
                 Subtitle = Shorten(file.FilePath, DescriptionLimit);
                 Description = file.FilePath;
                 ShowsIconPreview = true;
                 break;
             case TextModel text:
-                TypeLabel = "Текст";
+                TypeLabel = localization.TextTypeLabel;
                 Title = Shorten(GetFirstLine(text.Text), TitleLimit);
-                Subtitle = "Текстовая запись";
+                Subtitle = localization.TextRecordLabel;
                 Description = Shorten(text.Text, DescriptionLimit);
                 ShowsTextPreview = true;
                 break;
             case UrlModel url:
-                TypeLabel = "Ссылка";
+                TypeLabel = localization.LinkTypeLabel;
                 Title = Shorten(string.IsNullOrWhiteSpace(url.Title) ? url.Url : url.Title, TitleLimit);
                 Subtitle = Shorten(url.Url, DescriptionLimit);
                 Description = Shorten(url.Description, DescriptionLimit);
@@ -1609,17 +1665,17 @@ public sealed class FavoriteClipboardItem
                 HasOpenAction = true;
                 break;
             case ImageModel image:
-                TypeLabel = "Изображение";
+                TypeLabel = localization.ImageTypeLabel;
                 Title = Shorten(image.Name, TitleLimit);
-                Subtitle = "Изображение";
+                Subtitle = localization.ImageTypeLabel;
                 Description = image.Name;
                 PreviewSource = image.ImageSource;
                 ShowsImagePreview = image.ImageSource is not null;
                 ShowsIconPreview = !ShowsImagePreview;
                 break;
             default:
-                TypeLabel = "Запись";
-                Title = "Избранная запись";
+                TypeLabel = localization.ItemTypeLabel;
+                Title = localization.FavoriteRecordLabel;
                 Subtitle = string.Empty;
                 Description = string.Empty;
                 ShowsIconPreview = true;
@@ -1642,12 +1698,12 @@ public sealed class FavoriteClipboardItem
     public bool HasOpenAction { get; }
     public bool HasImagePreviewAction => Source is ImageModel { ImageSource: not null };
 
-    private static string GetFirstLine(string value)
+    private string GetFirstLine(string value)
     {
         return value
             .ReplaceLineEndings("\n")
             .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-            .FirstOrDefault() ?? "Текстовая запись";
+            .FirstOrDefault() ?? _localization.TextRecordLabel;
     }
 
     private static string Shorten(string? value, int maxLength)

@@ -7,8 +7,8 @@
                  xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
                  xmlns:helper="clr-namespace:ClipboardManager.Helper"
                  mc:Ignorable="d"
-                 Title="Clipboard Manager"
-                 Width="1120"
+                 Title="{Binding L.WindowTitle}"
+                 Width="1250"
                  Height="760"
                  MinWidth="760"
                  MinHeight="560"
@@ -30,6 +30,7 @@
                  UseLayoutRounding="True">
     <mah:MetroWindow.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+        <helper:PinToolTipConverter x:Key="PinToolTipConverter" />
 
         <SolidColorBrush x:Key="AppBackgroundBrush" Color="#F6F7F9" />
         <SolidColorBrush x:Key="SurfaceBrush" Color="#FFFFFF" />
@@ -269,6 +270,49 @@
                     <Setter Property="Foreground" Value="#F3B4C0" />
                 </Trigger>
             </Style.Triggers>
+        </Style>
+
+        <Style x:Key="LanguageToggleButtonStyle"
+               TargetType="{x:Type RadioButton}">
+            <Setter Property="Width" Value="44" />
+            <Setter Property="Height" Value="34" />
+            <Setter Property="Margin" Value="0" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Foreground" Value="#C7D2FE" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type RadioButton}">
+                        <Border x:Name="Root"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="7">
+                            <ContentPresenter Margin="{TemplateBinding Padding}"
+                                              HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Root" Property="Background" Value="#2D3B56" />
+                                <Setter TargetName="Root" Property="BorderBrush" Value="#64748B" />
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Root" Property="Background" Value="#E0E7FF" />
+                                <Setter TargetName="Root" Property="BorderBrush" Value="#E0E7FF" />
+                                <Setter Property="Foreground" Value="#111827" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
 
         <Style x:Key="ActionGroupStyle" TargetType="{x:Type Border}">
@@ -554,8 +598,14 @@
                             <Button DataContext="{Binding Source}"
                                     Command="{Binding DataContext.TogglePinCommand, RelativeSource={RelativeSource AncestorType={x:Type ListBox}}}"
                                     CommandParameter="{Binding}"
-                                    Style="{StaticResource PinIconButtonStyle}"
-                                    ToolTip="{Binding PinToolTip}">
+                                    Style="{StaticResource PinIconButtonStyle}">
+                                <Button.ToolTip>
+                                    <MultiBinding Converter="{StaticResource PinToolTipConverter}">
+                                        <Binding Path="IsPinned" />
+                                        <Binding Path="DataContext.L.AddToFavoritesToolTip" RelativeSource="{RelativeSource AncestorType={x:Type ListBox}}" />
+                                        <Binding Path="DataContext.L.RemoveFromFavoritesToolTip" RelativeSource="{RelativeSource AncestorType={x:Type ListBox}}" />
+                                    </MultiBinding>
+                                </Button.ToolTip>
                                 <Viewbox Width="18" Height="18">
                                     <iconPacks:Material Kind="Star" Width="18" Height="18" />
                                 </Viewbox>
@@ -565,7 +615,7 @@
                                     CommandParameter="{Binding}"
                                     Style="{StaticResource IconButtonStyle}"
                                     Margin="2,0,0,0"
-                                    ToolTip="Копировать">
+                                    ToolTip="{Binding DataContext.L.CopyToolTip, RelativeSource={RelativeSource AncestorType={x:Type ListBox}}}">
                                 <Viewbox Width="18" Height="18">
                                     <iconPacks:Material Kind="ContentCopy" Width="18" Height="18" />
                                 </Viewbox>
@@ -574,7 +624,7 @@
                                     CommandParameter="{Binding}"
                                     Style="{StaticResource IconButtonStyle}"
                                     Margin="2,0,0,0"
-                                    ToolTip="Открыть"
+                                    ToolTip="{Binding DataContext.L.OpenToolTip, RelativeSource={RelativeSource AncestorType={x:Type ListBox}}}"
                                     Visibility="{Binding HasOpenAction, Converter={StaticResource BoolToVisibilityConverter}}">
                                 <Viewbox Width="17" Height="17">
                                     <iconPacks:Material Kind="OpenInNew" Width="17" Height="17" />
@@ -585,7 +635,7 @@
                                     CommandParameter="{Binding}"
                                     Style="{StaticResource DangerIconButtonStyle}"
                                     Margin="2,0,0,0"
-                                    ToolTip="Удалить">
+                                    ToolTip="{Binding DataContext.L.DeleteToolTip, RelativeSource={RelativeSource AncestorType={x:Type ListBox}}}">
                                 <Viewbox Width="18" Height="18">
                                     <iconPacks:Material Kind="Delete" Width="18" Height="18" />
                                 </Viewbox>
@@ -637,8 +687,14 @@
                         <StackPanel Orientation="Horizontal">
                             <Button Command="{Binding DataContext.TogglePinCommand, RelativeSource={RelativeSource AncestorType={x:Type ListBox}}}"
                                     CommandParameter="{Binding}"
-                                    Style="{StaticResource PinIconButtonStyle}"
-                                    ToolTip="{Binding PinToolTip}">
+                                    Style="{StaticResource PinIconButtonStyle}">
+                                <Button.ToolTip>
+                                    <MultiBinding Converter="{StaticResource PinToolTipConverter}">
+                                        <Binding Path="IsPinned" />
+                                        <Binding Path="DataContext.L.AddToFavoritesToolTip" RelativeSource="{RelativeSource AncestorType={x:Type ListBox}}" />
+                                        <Binding Path="DataContext.L.RemoveFromFavoritesToolTip" RelativeSource="{RelativeSource AncestorType={x:Type ListBox}}" />
+                                    </MultiBinding>
+                                </Button.ToolTip>
                                 <Viewbox Width="18" Height="18">
                                     <iconPacks:Material Kind="Star" Width="18" Height="18" />
                                 </Viewbox>
@@ -647,7 +703,7 @@
                                     CommandParameter="{Binding}"
                                     Style="{StaticResource IconButtonStyle}"
                                     Margin="2,0,0,0"
-                                    ToolTip="Копировать">
+                                    ToolTip="{Binding DataContext.L.CopyToolTip, RelativeSource={RelativeSource AncestorType={x:Type ListBox}}}">
                                 <Viewbox Width="18" Height="18">
                                     <iconPacks:Material Kind="ContentCopy" Width="18" Height="18" />
                                 </Viewbox>
@@ -656,7 +712,7 @@
                                     CommandParameter="{Binding}"
                                     Style="{StaticResource IconButtonStyle}"
                                     Margin="2,0,0,0"
-                                    ToolTip="Открыть">
+                                    ToolTip="{Binding DataContext.L.OpenToolTip, RelativeSource={RelativeSource AncestorType={x:Type ListBox}}}">
                                 <Viewbox Width="17" Height="17">
                                     <iconPacks:FontAwesome Kind="FileSolid" Width="17" Height="17" />
                                 </Viewbox>
@@ -665,7 +721,7 @@
                                     CommandParameter="{Binding}"
                                     Style="{StaticResource DangerIconButtonStyle}"
                                     Margin="2,0,0,0"
-                                    ToolTip="Удалить">
+                                    ToolTip="{Binding DataContext.L.DeleteToolTip, RelativeSource={RelativeSource AncestorType={x:Type ListBox}}}">
                                 <Viewbox Width="18" Height="18">
                                     <iconPacks:Material Kind="Delete" Width="18" Height="18" />
                                 </Viewbox>
@@ -699,8 +755,14 @@
                         <StackPanel Orientation="Horizontal">
                             <Button Command="{Binding DataContext.TogglePinCommand, RelativeSource={RelativeSource AncestorType={x:Type ListBox}}}"
                                     CommandParameter="{Binding}"
-                                    Style="{StaticResource PinIconButtonStyle}"
-                                    ToolTip="{Binding PinToolTip}">
+                                    Style="{StaticResource PinIconButtonStyle}">
+                                <Button.ToolTip>
+                                    <MultiBinding Converter="{StaticResource PinToolTipConverter}">
+                                        <Binding Path="IsPinned" />
+                                        <Binding Path="DataContext.L.AddToFavoritesToolTip" RelativeSource="{RelativeSource AncestorType={x:Type ListBox}}" />
+                                        <Binding Path="DataContext.L.RemoveFromFavoritesToolTip" RelativeSource="{RelativeSource AncestorType={x:Type ListBox}}" />
+                                    </MultiBinding>
+                                </Button.ToolTip>
                                 <Viewbox Width="18" Height="18">
                                     <iconPacks:Material Kind="Star" Width="18" Height="18" />
                                 </Viewbox>
@@ -709,7 +771,7 @@
                                     CommandParameter="{Binding}"
                                     Style="{StaticResource IconButtonStyle}"
                                     Margin="2,0,0,0"
-                                    ToolTip="Копировать">
+                                    ToolTip="{Binding DataContext.L.CopyToolTip, RelativeSource={RelativeSource AncestorType={x:Type ListBox}}}">
                                 <Viewbox Width="18" Height="18">
                                     <iconPacks:Material Kind="ContentCopy" Width="18" Height="18" />
                                 </Viewbox>
@@ -718,7 +780,7 @@
                                     CommandParameter="{Binding}"
                                     Style="{StaticResource DangerIconButtonStyle}"
                                     Margin="2,0,0,0"
-                                    ToolTip="Удалить">
+                                    ToolTip="{Binding DataContext.L.DeleteToolTip, RelativeSource={RelativeSource AncestorType={x:Type ListBox}}}">
                                 <Viewbox Width="18" Height="18">
                                     <iconPacks:Material Kind="Delete" Width="18" Height="18" />
                                 </Viewbox>
@@ -773,8 +835,14 @@
                         <StackPanel Orientation="Horizontal">
                             <Button Command="{Binding DataContext.TogglePinCommand, RelativeSource={RelativeSource AncestorType={x:Type ListBox}}}"
                                     CommandParameter="{Binding}"
-                                    Style="{StaticResource PinIconButtonStyle}"
-                                    ToolTip="{Binding PinToolTip}">
+                                    Style="{StaticResource PinIconButtonStyle}">
+                                <Button.ToolTip>
+                                    <MultiBinding Converter="{StaticResource PinToolTipConverter}">
+                                        <Binding Path="IsPinned" />
+                                        <Binding Path="DataContext.L.AddToFavoritesToolTip" RelativeSource="{RelativeSource AncestorType={x:Type ListBox}}" />
+                                        <Binding Path="DataContext.L.RemoveFromFavoritesToolTip" RelativeSource="{RelativeSource AncestorType={x:Type ListBox}}" />
+                                    </MultiBinding>
+                                </Button.ToolTip>
                                 <Viewbox Width="18" Height="18">
                                     <iconPacks:Material Kind="Star" Width="18" Height="18" />
                                 </Viewbox>
@@ -783,7 +851,7 @@
                                     CommandParameter="{Binding}"
                                     Style="{StaticResource IconButtonStyle}"
                                     Margin="2,0,0,0"
-                                    ToolTip="Копировать">
+                                    ToolTip="{Binding DataContext.L.CopyToolTip, RelativeSource={RelativeSource AncestorType={x:Type ListBox}}}">
                                 <Viewbox Width="18" Height="18">
                                     <iconPacks:Material Kind="ContentCopy" Width="18" Height="18" />
                                 </Viewbox>
@@ -792,7 +860,7 @@
                                     CommandParameter="{Binding}"
                                     Style="{StaticResource IconButtonStyle}"
                                     Margin="2,0,0,0"
-                                    ToolTip="Открыть">
+                                    ToolTip="{Binding DataContext.L.OpenToolTip, RelativeSource={RelativeSource AncestorType={x:Type ListBox}}}">
                                 <Viewbox Width="18" Height="18">
                                     <iconPacks:FontAwesome Kind="InternetExplorerBrands" Width="18" Height="18" />
                                 </Viewbox>
@@ -801,7 +869,7 @@
                                     CommandParameter="{Binding}"
                                     Style="{StaticResource DangerIconButtonStyle}"
                                     Margin="2,0,0,0"
-                                    ToolTip="Удалить">
+                                    ToolTip="{Binding DataContext.L.DeleteToolTip, RelativeSource={RelativeSource AncestorType={x:Type ListBox}}}">
                                 <Viewbox Width="18" Height="18">
                                     <iconPacks:Material Kind="Delete" Width="18" Height="18" />
                                 </Viewbox>
@@ -823,7 +891,7 @@
                     <Button Command="{Binding DataContext.OpenImagePreviewCommand, RelativeSource={RelativeSource AncestorType={x:Type ListBox}}}"
                             CommandParameter="{Binding}"
                             Style="{StaticResource ImagePreviewButtonStyle}"
-                            ToolTip="Открыть">
+                            ToolTip="{Binding DataContext.L.OpenToolTip, RelativeSource={RelativeSource AncestorType={x:Type ListBox}}}">
                         <Border Background="{StaticResource SurfaceAltBrush}"
                                 BorderBrush="{StaticResource StrokeBrush}"
                                 BorderThickness="1"
@@ -853,8 +921,14 @@
                             <StackPanel Orientation="Horizontal">
                                 <Button Command="{Binding DataContext.TogglePinCommand, RelativeSource={RelativeSource AncestorType={x:Type ListBox}}}"
                                         CommandParameter="{Binding}"
-                                        Style="{StaticResource PinIconButtonStyle}"
-                                        ToolTip="{Binding PinToolTip}">
+                                        Style="{StaticResource PinIconButtonStyle}">
+                                    <Button.ToolTip>
+                                        <MultiBinding Converter="{StaticResource PinToolTipConverter}">
+                                            <Binding Path="IsPinned" />
+                                            <Binding Path="DataContext.L.AddToFavoritesToolTip" RelativeSource="{RelativeSource AncestorType={x:Type ListBox}}" />
+                                            <Binding Path="DataContext.L.RemoveFromFavoritesToolTip" RelativeSource="{RelativeSource AncestorType={x:Type ListBox}}" />
+                                        </MultiBinding>
+                                    </Button.ToolTip>
                                     <Viewbox Width="18" Height="18">
                                         <iconPacks:Material Kind="Star" Width="18" Height="18" />
                                     </Viewbox>
@@ -863,7 +937,7 @@
                                         CommandParameter="{Binding}"
                                         Style="{StaticResource IconButtonStyle}"
                                         Margin="2,0,0,0"
-                                        ToolTip="Копировать">
+                                        ToolTip="{Binding DataContext.L.CopyToolTip, RelativeSource={RelativeSource AncestorType={x:Type ListBox}}}">
                                     <Viewbox Width="18" Height="18">
                                         <iconPacks:Material Kind="ContentCopy" Width="18" Height="18" />
                                     </Viewbox>
@@ -872,7 +946,7 @@
                                         CommandParameter="{Binding}"
                                         Style="{StaticResource IconButtonStyle}"
                                         Margin="2,0,0,0"
-                                        ToolTip="Открыть">
+                                        ToolTip="{Binding DataContext.L.OpenToolTip, RelativeSource={RelativeSource AncestorType={x:Type ListBox}}}">
                                     <Viewbox Width="17" Height="17">
                                         <iconPacks:Material Kind="OpenInNew" Width="17" Height="17" />
                                     </Viewbox>
@@ -881,7 +955,7 @@
                                         CommandParameter="{Binding}"
                                         Style="{StaticResource DangerIconButtonStyle}"
                                         Margin="2,0,0,0"
-                                        ToolTip="Удалить">
+                                        ToolTip="{Binding DataContext.L.DeleteToolTip, RelativeSource={RelativeSource AncestorType={x:Type ListBox}}}">
                                     <Viewbox Width="18" Height="18">
                                         <iconPacks:Material Kind="Delete" Width="18" Height="18" />
                                     </Viewbox>
@@ -915,7 +989,7 @@
                     </Grid.ColumnDefinitions>
 
                     <StackPanel>
-                        <TextBlock Text="Буфер обмена"
+                        <TextBlock Text="{Binding L.AppTitle}"
                                    Foreground="White"
                                    FontSize="28"
                                    FontWeight="SemiBold" />
@@ -964,10 +1038,34 @@
                             </StackPanel>
                         </Border>
 
+                        <Border Background="#263248"
+                                BorderBrush="#46536A"
+                                BorderThickness="1"
+                                CornerRadius="8"
+                                Padding="4"
+                                Margin="0,0,8,0"
+                                ToolTip="{Binding L.LanguageToolTip}">
+                            <StackPanel Orientation="Horizontal">
+                                <RadioButton Content="ENG"
+                                             GroupName="InterfaceLanguage"
+                                             IsChecked="{Binding IsEnglishLanguageSelected, Mode=OneWay}"
+                                             Command="{Binding ChangeLanguageCommand}"
+                                             CommandParameter="en"
+                                             Style="{StaticResource LanguageToggleButtonStyle}" />
+                                <RadioButton Content="РУ"
+                                             GroupName="InterfaceLanguage"
+                                             IsChecked="{Binding IsRussianLanguageSelected, Mode=OneWay}"
+                                             Command="{Binding ChangeLanguageCommand}"
+                                             CommandParameter="ru"
+                                             Style="{StaticResource LanguageToggleButtonStyle}"
+                                             Margin="3,0,0,0" />
+                            </StackPanel>
+                        </Border>
+
                         <Button Command="{Binding ImportCommand}"
                                 Style="{StaticResource HeaderIconButtonStyle}"
                                 Margin="0,0,8,0"
-                                ToolTip="Импорт">
+                                ToolTip="{Binding L.ImportToolTip}">
                             <Viewbox Width="19" Height="19">
                                 <iconPacks:Material Kind="FileUpload" Width="19" Height="19" />
                             </Viewbox>
@@ -976,7 +1074,7 @@
                         <Button Command="{Binding ExportCommand}"
                                 Style="{StaticResource HeaderIconButtonStyle}"
                                 Margin="0,0,8,0"
-                                ToolTip="Экспорт">
+                                ToolTip="{Binding L.ExportToolTip}">
                             <Viewbox Width="19" Height="19">
                                 <iconPacks:Material Kind="FileDownload" Width="19" Height="19" />
                             </Viewbox>
@@ -984,7 +1082,7 @@
 
                         <Button Command="{Binding ClearCommand}"
                                 Style="{StaticResource HeaderDangerIconButtonStyle}"
-                                ToolTip="Очистить">
+                                ToolTip="{Binding L.ClearToolTip}">
                             <Viewbox Width="19" Height="19">
                                 <iconPacks:Material Kind="DeleteSweep" Width="19" Height="19" />
                             </Viewbox>
@@ -1025,7 +1123,7 @@
                                  FontSize="14"
                                  Padding="0"
                                  VerticalContentAlignment="Center" />
-                        <TextBlock Text="Поиск по истории"
+                        <TextBlock Text="{Binding L.SearchPlaceholder}"
                                    Foreground="{StaticResource MutedTextBrush}"
                                    FontSize="14"
                                    IsHitTestVisible="False"
@@ -1043,7 +1141,7 @@
                     <Button Grid.Column="3"
                             Command="{Binding ClearSearchCommand}"
                             Style="{StaticResource IconButtonStyle}"
-                            ToolTip="Очистить поиск"
+                            ToolTip="{Binding L.ClearSearchToolTip}"
                             Visibility="{Binding IsSearchActive, Converter={StaticResource BoolToVisibilityConverter}}">
                         <Viewbox Width="16" Height="16">
                             <iconPacks:Material Kind="Close" Width="16" Height="16" />
@@ -1078,7 +1176,7 @@
                             </Grid>
                         </Border>
                         <TextBlock Grid.Column="1"
-                                   Text="Избранное"
+                                   Text="{Binding L.FavoritesTab}"
                                    Margin="10,0,0,0"
                                    VerticalAlignment="Center" />
                         <Border Grid.Column="2"
@@ -1113,7 +1211,7 @@
                             </Grid>
                         </Border>
                         <TextBlock Grid.Column="1"
-                                   Text="Файлы"
+                                   Text="{Binding L.FilesTab}"
                                    Margin="10,0,0,0"
                                    VerticalAlignment="Center" />
                         <Border Grid.Column="2"
@@ -1148,7 +1246,7 @@
                             </Grid>
                         </Border>
                         <TextBlock Grid.Column="1"
-                                   Text="Текст"
+                                   Text="{Binding L.TextTab}"
                                    Margin="10,0,0,0"
                                    VerticalAlignment="Center" />
                         <Border Grid.Column="2"
@@ -1184,7 +1282,7 @@
                             </Grid>
                         </Border>
                         <TextBlock Grid.Column="1"
-                                   Text="Ссылки"
+                                   Text="{Binding L.LinksTab}"
                                    Margin="10,0,0,0"
                                    VerticalAlignment="Center" />
                         <Border Grid.Column="2"
@@ -1220,7 +1318,7 @@
                             </Grid>
                         </Border>
                         <TextBlock Grid.Column="1"
-                                   Text="Изображения"
+                                   Text="{Binding L.ImagesTab}"
                                    Margin="10,0,0,0"
                                    VerticalAlignment="Center" />
                         <Border Grid.Column="2"
@@ -1416,7 +1514,7 @@
                                 <StackPanel Orientation="Horizontal">
                                     <Button Command="{Binding ZoomOutImageCommand}"
                                             Style="{StaticResource IconButtonStyle}"
-                                            ToolTip="Уменьшить">
+                                            ToolTip="{Binding L.ZoomOutToolTip}">
                                         <TextBlock Text="-"
                                                    FontSize="20"
                                                    FontWeight="SemiBold"
@@ -1426,7 +1524,7 @@
                                     <Button Command="{Binding ResetImageZoomCommand}"
                                             Style="{StaticResource IconButtonStyle}"
                                             Margin="2,0,0,0"
-                                            ToolTip="Сбросить масштаб">
+                                            ToolTip="{Binding L.ResetZoomToolTip}">
                                         <Viewbox Width="17" Height="17">
                                             <iconPacks:Material Kind="Magnify" Width="17" Height="17" />
                                         </Viewbox>
@@ -1434,7 +1532,7 @@
                                     <Button Command="{Binding ZoomInImageCommand}"
                                             Style="{StaticResource IconButtonStyle}"
                                             Margin="2,0,0,0"
-                                            ToolTip="Увеличить">
+                                            ToolTip="{Binding L.ZoomInToolTip}">
                                         <TextBlock Text="+"
                                                    FontSize="18"
                                                    FontWeight="SemiBold"
@@ -1445,7 +1543,7 @@
                                             CommandParameter="{Binding PreviewImage}"
                                             Style="{StaticResource IconButtonStyle}"
                                             Margin="2,0,0,0"
-                                            ToolTip="Копировать">
+                                            ToolTip="{Binding L.CopyToolTip}">
                                         <Viewbox Width="18" Height="18">
                                             <iconPacks:Material Kind="ContentCopy" Width="18" Height="18" />
                                         </Viewbox>
@@ -1453,7 +1551,7 @@
                                     <Button Command="{Binding CloseImagePreviewCommand}"
                                             Style="{StaticResource DangerIconButtonStyle}"
                                             Margin="2,0,0,0"
-                                            ToolTip="Закрыть">
+                                            ToolTip="{Binding L.CloseToolTip}">
                                         <Viewbox Width="18" Height="18">
                                             <iconPacks:Material Kind="Close" Width="18" Height="18" />
                                         </Viewbox>

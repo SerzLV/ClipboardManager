@@ -1,4 +1,5 @@
 using Microsoft.Win32;
+using ClipboardManager.Localization;
 
 namespace ClipboardManager.Services;
 
@@ -10,8 +11,12 @@ public interface IClipboardTransferDialogService
 
 public sealed class ClipboardTransferDialogService : IClipboardTransferDialogService
 {
-    private const string BackupFilter =
-        "Clipboard Manager backup (*.clipboard.json)|*.clipboard.json|JSON files (*.json)|*.json";
+    private readonly LocalizationService _localization;
+
+    public ClipboardTransferDialogService(LocalizationService localization)
+    {
+        _localization = localization;
+    }
 
     public string? ShowExportDialog()
     {
@@ -20,9 +25,9 @@ public sealed class ClipboardTransferDialogService : IClipboardTransferDialogSer
             AddExtension = true,
             DefaultExt = ".clipboard.json",
             FileName = $"clipboard-backup-{DateTime.Now:yyyyMMdd-HHmmss}.clipboard.json",
-            Filter = BackupFilter,
+            Filter = _localization.BackupFilter,
             OverwritePrompt = true,
-            Title = "Экспорт истории буфера обмена"
+            Title = _localization.ExportDialogTitle
         };
 
         return dialog.ShowDialog() == true
@@ -36,9 +41,9 @@ public sealed class ClipboardTransferDialogService : IClipboardTransferDialogSer
         {
             CheckFileExists = true,
             DefaultExt = ".clipboard.json",
-            Filter = BackupFilter,
+            Filter = _localization.BackupFilter,
             Multiselect = false,
-            Title = "Импорт истории буфера обмена"
+            Title = _localization.ImportDialogTitle
         };
 
         return dialog.ShowDialog() == true
