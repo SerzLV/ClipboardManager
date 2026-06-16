@@ -11,6 +11,8 @@ public sealed class ClipboardTextCaptureService(
 {
     private const int MaxUrlPreviewConcurrency = 4;
     private static readonly Regex UrlRegex = new(@"\b(?:https?://|www\.)\S+\b", RegexOptions.Compiled);
+    private static readonly char[] UrlLeadingTrimChars = ['(', '[', '{', '<', '"', '\''];
+    private static readonly char[] UrlTrailingTrimChars = ['.', ',', ';', ':', '!', '?', ')', ']', '}', '>', '"', '\''];
 
     public async Task<bool> ShouldCaptureTextAsync(
         string text,
@@ -23,6 +25,12 @@ public sealed class ClipboardTextCaptureService(
             return false;
         }
 
+        var normalizedTextUrl = NormalizeUrlCandidate(text);
+        if (normalizedTextUrl is not null && knownUrlTextValues.Contains(normalizedTextUrl))
+        {
+            return false;
+        }
+
         if (knownTexts.Contains(text)
             || knownUrlTextValues.Contains(text)
             || await repository.TextExistsAsync(text, cancellationToken))
@@ -30,8 +38,12 @@ public sealed class ClipboardTextCaptureService(
             return false;
         }
 
-        var existingTextUrl = await repository.FindExistingUrlsAsync([text], cancellationToken);
-        return !existingTextUrl.Contains(text);
+        var urlCandidates = normalizedTextUrl is null
+            ? [text]
+            : new[] { text, normalizedTextUrl };
+        var existingTextUrl = await repository.FindExistingUrlsAsync(urlCandidates, cancellationToken);
+        return !existingTextUrl.Contains(text)
+            && (normalizedTextUrl is null || !existingTextUrl.Contains(normalizedTextUrl));
     }
 
     public IReadOnlyList<string> ExtractUrlCandidates(
@@ -44,8 +56,9 @@ public sealed class ClipboardTextCaptureService(
         }
 
         return UrlRegex.Matches(text)
-            .Select(match => match.Value.TrimEnd('.', ',', ';', ')', ']'))
-            .Where(url => !knownUrls.Contains(url))
+            .Select(match => NormalizeUrlCandidate(match.Value))
+            .Where(url => url is not null && !knownUrls.Contains(url))
+            .Select(url => url!)
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToArray();
     }
@@ -101,5 +114,26 @@ public sealed class ClipboardTextCaptureService(
         });
 
         return await Task.WhenAll(tasks).ConfigureAwait(false);
+    }
+
+    private static string? NormalizeUrlCandidate(string value)
+    {
+        var trimmedValue = value
+            .Trim()
+            .TrimStart(UrlLeadingTrimChars)
+            .TrimEnd(UrlTrailingTrimChars);
+        if (string.IsNullOrWhiteSpace(trimmedValue))
+        {
+            return null;
+        }
+
+        var normalizedValue = trimmedValue.StartsWith("www.", StringComparison.OrdinalIgnoreCase)
+            ? $"https://{trimmedValue}"
+            : trimmedValue;
+
+        return Uri.TryCreate(normalizedValue, UriKind.Absolute, out var uri)
+            && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps)
+            ? uri.ToString()
+            : null;
     }
 }

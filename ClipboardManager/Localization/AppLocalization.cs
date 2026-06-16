@@ -481,7 +481,7 @@ public static class AppSettingsStore
             HistoryBatchSize = AppSettings.NormalizeHistoryBatchSize(settings.HistoryBatchSize),
             LinkRefreshIntervalDays = AppSettings.NormalizeLinkRefreshIntervalDays(settings.LinkRefreshIntervalDays)
         };
-        File.WriteAllText(GetSettingsFilePath(), JsonSerializer.Serialize(document, SerializerOptions));
+        WriteAllTextAtomic(GetSettingsFilePath(), JsonSerializer.Serialize(document, SerializerOptions));
     }
 
     private static string GetSettingsDirectoryPath()
@@ -494,6 +494,35 @@ public static class AppSettingsStore
     private static string GetSettingsFilePath()
     {
         return Path.Combine(GetSettingsDirectoryPath(), SettingsFileName);
+    }
+
+    private static void WriteAllTextAtomic(string filePath, string contents)
+    {
+        var temporaryFilePath = $"{filePath}.{Guid.NewGuid():N}.tmp";
+
+        try
+        {
+            File.WriteAllText(temporaryFilePath, contents);
+            File.Move(temporaryFilePath, filePath, true);
+        }
+        finally
+        {
+            TryDeleteFile(temporaryFilePath);
+        }
+    }
+
+    private static void TryDeleteFile(string filePath)
+    {
+        try
+        {
+            if (File.Exists(filePath))
+            {
+                File.Delete(filePath);
+            }
+        }
+        catch
+        {
+        }
     }
 
     private sealed class AppSettingsDocument

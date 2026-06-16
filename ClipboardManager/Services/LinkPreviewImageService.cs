@@ -159,14 +159,17 @@ public sealed class LinkPreviewImageService : ILinkPreviewImageService
                 }
 
                 var deletedCount = 0;
-                foreach (var filePath in Directory.EnumerateFiles(CacheDirectoryPath, "*.img"))
+                foreach (var filePath in EnumerateCacheFiles())
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
                     try
                     {
                         File.Delete(filePath);
-                        deletedCount++;
+                        if (filePath.EndsWith(".img", StringComparison.OrdinalIgnoreCase))
+                        {
+                            deletedCount++;
+                        }
                     }
                     catch
                     {
@@ -236,7 +239,34 @@ public sealed class LinkPreviewImageService : ILinkPreviewImageService
         await File.WriteAllBytesAsync(temporaryFilePath, imageData, cancellationToken)
             .ConfigureAwait(false);
 
-        File.Move(temporaryFilePath, cacheFilePath, true);
+        try
+        {
+            File.Move(temporaryFilePath, cacheFilePath, true);
+        }
+        finally
+        {
+            TryDeleteTemporaryFile(temporaryFilePath);
+        }
+    }
+
+    private static IEnumerable<string> EnumerateCacheFiles()
+    {
+        return Directory.EnumerateFiles(CacheDirectoryPath, "*.img")
+            .Concat(Directory.EnumerateFiles(CacheDirectoryPath, "*.tmp"));
+    }
+
+    private static void TryDeleteTemporaryFile(string filePath)
+    {
+        try
+        {
+            if (File.Exists(filePath))
+            {
+                File.Delete(filePath);
+            }
+        }
+        catch
+        {
+        }
     }
 
     private static string GetCacheFilePath(Uri uri)

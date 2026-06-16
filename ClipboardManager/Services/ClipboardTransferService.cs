@@ -35,8 +35,28 @@ public sealed class ClipboardTransferService : IClipboardTransferService
 
         var document = await Task.Run(() => CreateDocument(data), cancellationToken);
 
-        await using var stream = File.Create(filePath);
-        await JsonSerializer.SerializeAsync(stream, document, JsonOptions, cancellationToken);
+        var fullPath = Path.GetFullPath(filePath);
+        var directoryPath = Path.GetDirectoryName(fullPath);
+        if (!string.IsNullOrWhiteSpace(directoryPath))
+        {
+            Directory.CreateDirectory(directoryPath);
+        }
+
+        var temporaryFilePath = $"{fullPath}.{Guid.NewGuid():N}.tmp";
+
+        try
+        {
+            await using (var stream = File.Create(temporaryFilePath))
+            {
+                await JsonSerializer.SerializeAsync(stream, document, JsonOptions, cancellationToken);
+            }
+
+            File.Move(temporaryFilePath, fullPath, true);
+        }
+        finally
+        {
+            TryDeleteFile(temporaryFilePath);
+        }
     }
 
     public async Task<ClipboardData> ImportAsync(
@@ -104,7 +124,7 @@ public sealed class ClipboardTransferService : IClipboardTransferService
 
     private static ClipboardData CreateData(ClipboardExportDocument document)
     {
-        var files = document.Files
+        var files = (document.Files ?? [])
             .Select(file => new FileInfoModel
             {
                 Name = file.Name,
@@ -114,7 +134,7 @@ public sealed class ClipboardTransferService : IClipboardTransferService
             .Where(file => !string.IsNullOrWhiteSpace(file.FilePath))
             .ToArray();
 
-        var texts = document.Texts
+        var texts = (document.Texts ?? [])
             .Select(text => new TextModel
             {
                 Text = text.Text,
@@ -123,7 +143,7 @@ public sealed class ClipboardTransferService : IClipboardTransferService
             .Where(text => !string.IsNullOrWhiteSpace(text.Text))
             .ToArray();
 
-        var images = document.Images
+        var images = (document.Images ?? [])
             .Where(image => image.ImageData.Length > 0)
             .Select(image => new ImageModel
             {
@@ -139,7 +159,7 @@ public sealed class ClipboardTransferService : IClipboardTransferService
             .Where(image => image.ThumbnailSource is not null)
             .ToArray();
 
-        var urls = document.Urls
+        var urls = (document.Urls ?? [])
             .Select(url => new UrlModel
             {
                 Url = url.Url,
@@ -153,6 +173,20 @@ public sealed class ClipboardTransferService : IClipboardTransferService
             .ToArray();
 
         return new ClipboardData(files, texts, images, urls);
+    }
+
+    private static void TryDeleteFile(string filePath)
+    {
+        try
+        {
+            if (File.Exists(filePath))
+            {
+                File.Delete(filePath);
+            }
+        }
+        catch
+        {
+        }
     }
 
     private sealed class ClipboardExportDocument

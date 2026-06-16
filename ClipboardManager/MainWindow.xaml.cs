@@ -92,9 +92,7 @@ public partial class MainWindow : MetroWindow
         _clipboardWatcher?.Dispose();
         _clipboardWatcher = null;
 
-        Dispatcher.InvokeAsync(
-            () => _ = CloseAfterFlushAsync(),
-            DispatcherPriority.ContextIdle);
+        _ = CloseAfterFlushAsync();
     }
 
     private async Task CloseAfterFlushAsync()

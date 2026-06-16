@@ -1,6 +1,7 @@
 using ClipboardManager.Interfaces;
 using ClipboardManager.Models;
 using ClipboardManager.Services;
+using System.Diagnostics;
 
 namespace ClipboardManager.ViewModels;
 
@@ -168,8 +169,9 @@ public sealed partial class MainWindowViewModel
                 _urlPreviewImageLoadLock.Release();
             }
         }
-        catch
+        catch (Exception ex)
         {
+            Debug.WriteLine(ex);
         }
         finally
         {
@@ -208,8 +210,9 @@ public sealed partial class MainWindowViewModel
                 MaxStaleLinkRefreshPerRun);
             ApplyRefreshedLinks(refreshedLinks);
         }
-        catch
+        catch (Exception ex)
         {
+            Debug.WriteLine(ex);
         }
         finally
         {

@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Threading;
 
 namespace ClipboardManager.Helper;
 
@@ -114,6 +115,9 @@ public static class LoadMoreOnScrollBehavior
 
         element.SetValue(AttachedScrollViewerProperty, scrollViewer);
         scrollViewer.ScrollChanged += HandleScrollChanged;
+        scrollViewer.Dispatcher.BeginInvoke(
+            () => TryExecuteLoadMore(scrollViewer),
+            DispatcherPriority.ContextIdle);
     }
 
     private static void Detach(FrameworkElement element)
@@ -132,6 +136,11 @@ public static class LoadMoreOnScrollBehavior
             return;
         }
 
+        TryExecuteLoadMore(scrollViewer);
+    }
+
+    private static void TryExecuteLoadMore(ScrollViewer scrollViewer)
+    {
         var owner = FindOwner(scrollViewer);
         if (owner is null)
         {

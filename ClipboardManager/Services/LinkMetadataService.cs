@@ -50,17 +50,21 @@ public sealed class LinkMetadataService : ILinkMetadataService
             var document = new HtmlDocument();
             document.LoadHtml(html);
 
-            var imageUrl = document.DocumentNode
-                .SelectSingleNode("//head/meta[@property='og:image']")
-                ?.GetAttributeValue("content", string.Empty);
+            var title = Decode(GetMetaContent(document, "og:title", "twitter:title"))
+                ?? Decode(document.DocumentNode.SelectSingleNode("//head/title")?.InnerText)
+                ?? uri.Host;
+            var description = Decode(GetMetaContent(
+                document,
+                "og:description",
+                "description",
+                "twitter:description")) ?? string.Empty;
+            var imageUrl = GetMetaContent(document, "og:image", "twitter:image");
 
             return new UrlModel
             {
                 Url = uri.ToString(),
-                Title = Decode(document.DocumentNode.SelectSingleNode("//head/title")?.InnerText) ?? uri.Host,
-                Description = Decode(document.DocumentNode
-                    .SelectSingleNode("//head/meta[@name='description']")
-                    ?.GetAttributeValue("content", string.Empty)) ?? string.Empty,
+                Title = title,
+                Description = description,
                 ImageUrl = ResolveImageUrl(uri, imageUrl),
                 MetadataUpdatedAt = DateTime.UtcNow
             };
@@ -109,9 +113,34 @@ public sealed class LinkMetadataService : ILinkMetadataService
             return DefaultImage;
         }
 
-        return Uri.TryCreate(imageUrl, UriKind.Absolute, out var absoluteImageUri)
-            ? absoluteImageUri.ToString()
-            : new Uri(pageUri, imageUrl).ToString();
+        if (Uri.TryCreate(imageUrl, UriKind.Absolute, out var absoluteImageUri))
+        {
+            return absoluteImageUri.ToString();
+        }
+
+        return Uri.TryCreate(pageUri, imageUrl, out var relativeImageUri)
+            ? relativeImageUri.ToString()
+            : DefaultImage;
+    }
+
+    private static string? GetMetaContent(HtmlDocument document, params string[] names)
+    {
+        foreach (var name in names)
+        {
+            var node = document.DocumentNode.SelectSingleNode(
+                "//head/meta["
+                + $"translate(@property, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz')='{name}'"
+                + " or "
+                + $"translate(@name, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz')='{name}'"
+                + "]");
+            var value = node?.GetAttributeValue("content", string.Empty);
+            if (!string.IsNullOrWhiteSpace(value))
+            {
+                return value;
+            }
+        }
+
+        return null;
     }
 
     private static string? Decode(string? value)
