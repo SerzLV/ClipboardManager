@@ -201,11 +201,17 @@
 
                     <ComboBox Grid.Column="2"
                               Width="154"
-                              DisplayMemberPath="DisplayName"
                               ItemsSource="{Binding LinkRefreshIntervalOptions}"
-                              SelectedItem="{Binding SelectedLinkRefreshIntervalOption, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                              SelectedValue="{Binding LinkRefreshIntervalDays, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                              SelectedValuePath="Days"
                               Style="{DynamicResource SettingsComboBoxStyle}"
-                              VerticalAlignment="Center" />
+                              VerticalAlignment="Center">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding DisplayName}" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
                 </Grid>
             </Border>
 

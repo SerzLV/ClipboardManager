@@ -308,21 +308,6 @@ public sealed partial class MainWindowViewModel : BaseViewModel
 
     public IReadOnlyList<LinkRefreshIntervalOption> LinkRefreshIntervalOptions => _linkRefreshIntervalOptions;
 
-    public LinkRefreshIntervalOption? SelectedLinkRefreshIntervalOption
-    {
-        get => _linkRefreshIntervalOptions.FirstOrDefault(option => option.Days == LinkRefreshIntervalDays)
-            ?? _linkRefreshIntervalOptions.LastOrDefault();
-        set
-        {
-            if (value is null)
-            {
-                return;
-            }
-
-            LinkRefreshIntervalDays = value.Days;
-        }
-    }
-
     public int LinkRefreshIntervalDays
     {
         get => AppSettings.NormalizeLinkRefreshIntervalDays(_settings.LinkRefreshIntervalDays);
@@ -336,7 +321,6 @@ public sealed partial class MainWindowViewModel : BaseViewModel
 
             _settings.LinkRefreshIntervalDays = normalizedValue;
             OnPropertyChanged();
-            OnPropertyChanged(nameof(SelectedLinkRefreshIntervalOption));
             SaveSettings();
             QueueStaleLinkRefresh();
         }
@@ -710,9 +694,8 @@ public sealed partial class MainWindowViewModel : BaseViewModel
 
     private void RefreshLocalizedState()
     {
-        _linkRefreshIntervalOptions = CreateLinkRefreshIntervalOptions();
-        OnPropertyChanged(nameof(LinkRefreshIntervalOptions));
-        OnPropertyChanged(nameof(SelectedLinkRefreshIntervalOption));
+        RefreshLinkRefreshIntervalOptionLabels();
+        OnPropertyChanged(nameof(LinkRefreshIntervalDays));
         RebuildFavorites();
         RefreshClipboardViews();
         RaiseLocalizedTextChanged();
@@ -726,6 +709,14 @@ public sealed partial class MainWindowViewModel : BaseViewModel
             new(AppSettings.LinkRefreshWeeklyDays, _localization.LinkRefreshIntervalOptionText(AppSettings.LinkRefreshWeeklyDays)),
             new(AppSettings.LinkRefreshMonthlyDays, _localization.LinkRefreshIntervalOptionText(AppSettings.LinkRefreshMonthlyDays))
         ];
+    }
+
+    private void RefreshLinkRefreshIntervalOptionLabels()
+    {
+        foreach (var option in _linkRefreshIntervalOptions)
+        {
+            option.DisplayName = _localization.LinkRefreshIntervalOptionText(option.Days);
+        }
     }
 
     private ICollectionView CreateClipboardView<T>(
