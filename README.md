@@ -147,11 +147,11 @@ ClipboardManager/
 
 ## Data And Privacy
 
-ClipboardManager stores clipboard history locally on your machine. It does not use cloud sync.
+ClipboardManager stores clipboard history locally on your machine. It does not use cloud sync. See [PRIVACY.md](PRIVACY.md) for the full privacy notice.
 
 Regular history is stored in SQLite under `%LOCALAPPDATA%\ClipboardManager`. Link preview images are cached under `%LOCALAPPDATA%\ClipboardManager\Cache\LinkPreviews`. App preferences are stored in `%APPDATA%\ClipboardManager\settings.json`. The Windows startup setting is applied per-user through `HKCU\Software\Microsoft\Windows\CurrentVersion\Run`.
 
-Secrets are stored in the same local database, but the secret value is encrypted with Windows DPAPI and scoped to the current Windows user. The UI shows secrets masked by default, asks Windows to verify the user before reveal/copy, auto-hides revealed values, and clears copied secrets from the clipboard after a short delay when possible.
+Secrets are stored in the same local database, but the secret value is encrypted with Windows DPAPI and scoped to the current Windows user. The UI shows secrets masked by default, asks Windows to verify the user before reveal/copy, auto-hides revealed values, and clears copied secrets from the clipboard after a short delay when possible. ClipboardManager is not a replacement for a dedicated password manager or a security-audited enterprise product.
 
 Exports intentionally do not include secrets. The "clear history" action clears regular clipboard history but keeps secrets separate; delete a secret directly when it should be removed.
 
@@ -179,9 +179,11 @@ Import merges data into the current history and avoids obvious duplicates.
 - Optional quick-paste actions for favorites.
 - Automated tests for import/export and repository behavior.
 
-## Disclaimer
+## Legal
 
-This application is provided as-is, without warranty or guarantees. Use it at your own risk. See [LICENSE](LICENSE) for the full disclaimer.
+ClipboardManager is distributed under the [MIT License](LICENSE).
+
+This application is provided as-is, without warranty or guarantees. Use it at your own risk. See [DISCLAIMER.md](DISCLAIMER.md) for the full disclaimer and [PRIVACY.md](PRIVACY.md) for the privacy notice.
 
 ## Support
 

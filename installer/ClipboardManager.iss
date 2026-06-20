@@ -23,6 +23,7 @@ DefaultDirName={localappdata}\Programs\{#AppName}
 DefaultGroupName={#AppName}
 DisableProgramGroupPage=yes
 LicenseFile=..\LICENSE
+InfoBeforeFile=NOTICE.txt
 OutputDir={#OutputDir}
 OutputBaseFilename=ClipboardManager-Setup-{#AppVersion}
 SetupIconFile=..\ClipboardManager\Resources\Images\app.ico

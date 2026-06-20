@@ -1,0 +1,19 @@
+Important Notice
+
+ClipboardManager is provided as-is, without warranty of any kind. Use it at
+your own risk.
+
+Clipboard history can contain sensitive information. You are responsible for
+reviewing, deleting, exporting, importing, and protecting the data stored by the
+application.
+
+ClipboardManager stores history locally on this Windows user account. Secrets
+are encrypted with Windows DPAPI for the current Windows user, but this
+application is not a replacement for a dedicated password manager or a
+security-audited enterprise product.
+
+When link previews are enabled, the app may request copied web pages and their
+preview images directly from your machine to those websites or image hosts.
+
+By continuing installation, you acknowledge the MIT License and the additional
+project disclaimer and privacy notice available in the repository.
