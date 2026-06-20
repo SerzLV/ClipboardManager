@@ -1,0 +1,102 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version for manual build, for example 1.0.0"
+        required: true
+        default: "0.0.0-dev"
+
+permissions:
+  contents: write
+
+jobs:
+  windows-release:
+    name: Build Windows release
+    runs-on: windows-latest
+
+    env:
+      PROJECT_PATH: ClipboardManager/ClipboardManager.csproj
+      RUNTIME_ID: win-x64
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Resolve version
+        shell: pwsh
+        run: |
+          if ("${{ github.ref_type }}" -eq "tag") {
+            $version = "${{ github.ref_name }}".TrimStart("v")
+          } else {
+            $version = "${{ github.event.inputs.version }}"
+          }
+
+          "APP_VERSION=$version" >> $env:GITHUB_ENV
+          "PORTABLE_ZIP=ClipboardManager-$version-$env:RUNTIME_ID-portable.zip" >> $env:GITHUB_ENV
+          "SETUP_EXE=ClipboardManager-Setup-$version.exe" >> $env:GITHUB_ENV
+
+      - name: Publish portable app
+        shell: pwsh
+        run: |
+          dotnet publish $env:PROJECT_PATH `
+            --configuration Release `
+            --runtime $env:RUNTIME_ID `
+            --self-contained true `
+            --output "artifacts/publish/$env:RUNTIME_ID" `
+            -p:Version=$env:APP_VERSION `
+            -p:PublishSingleFile=true `
+            -p:IncludeNativeLibrariesForSelfExtract=true `
+            -p:EnableCompressionInSingleFile=true `
+            -p:DebugType=None `
+            -p:DebugSymbols=false
+
+      - name: Create portable zip
+        shell: pwsh
+        run: |
+          Compress-Archive `
+            -Path "artifacts/publish/$env:RUNTIME_ID/*" `
+            -DestinationPath "artifacts/$env:PORTABLE_ZIP" `
+            -Force
+
+      - name: Install Inno Setup
+        shell: pwsh
+        run: choco install innosetup --no-progress -y
+
+      - name: Build installer
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path "artifacts/installer" | Out-Null
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          & $iscc `
+            "/DAppVersion=$env:APP_VERSION" `
+            "/DSourceDir=$PWD\artifacts\publish\$env:RUNTIME_ID" `
+            "/DOutputDir=$PWD\artifacts\installer" `
+            "installer\ClipboardManager.iss"
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ClipboardManager-${{ env.APP_VERSION }}-${{ env.RUNTIME_ID }}
+          path: |
+            artifacts/${{ env.PORTABLE_ZIP }}
+            artifacts/installer/${{ env.SETUP_EXE }}
+
+      - name: Publish GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ClipboardManager ${{ env.APP_VERSION }}
+          files: |
+            artifacts/${{ env.PORTABLE_ZIP }}
+            artifacts/installer/${{ env.SETUP_EXE }}
+          generate_release_notes: true

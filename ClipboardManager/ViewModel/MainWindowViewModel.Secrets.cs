@@ -98,8 +98,17 @@ public sealed partial class MainWindowViewModel
             var signature = await _clipboardService.SetTextAsync(secretText);
             _clipboardChangeSuppressor.Suppress(signature, SecretClipboardSuppressionDuration);
             _lastHandledClipboardSignature = signature;
-            ScheduleSecretClipboardClear(signature);
-            SetStatus(text => text.SecretCopiedStatus(SecretClipboardClearSeconds, SecretCopyTrustSeconds));
+
+            if (ClearCopiedSecretsFromClipboard)
+            {
+                ScheduleSecretClipboardClear(signature);
+                SetStatus(text => text.SecretCopiedStatus(SecretClipboardClearSeconds, SecretCopyTrustSeconds));
+            }
+            else
+            {
+                CancelSecretClipboardClear();
+                SetStatus(text => text.SecretCopiedWithoutAutoClearStatus(SecretCopyTrustSeconds));
+            }
         }
         catch (Exception ex)
         {
@@ -269,12 +278,19 @@ public sealed partial class MainWindowViewModel
 
     private void ScheduleSecretClipboardClear(ClipboardContentSignature signature)
     {
-        _secretClipboardClearCancellation?.Cancel();
+        CancelSecretClipboardClear();
         _pendingSecretClipboardSignature = signature;
 
         var cancellation = new CancellationTokenSource();
         _secretClipboardClearCancellation = cancellation;
         _ = ClearSecretClipboardAfterDelayAsync(signature, cancellation);
+    }
+
+    private void CancelSecretClipboardClear()
+    {
+        _secretClipboardClearCancellation?.Cancel();
+        _secretClipboardClearCancellation = null;
+        _pendingSecretClipboardSignature = null;
     }
 
     private async Task ClearSecretClipboardAfterDelayAsync(
@@ -313,10 +329,7 @@ public sealed partial class MainWindowViewModel
         }
 
         var signature = _pendingSecretClipboardSignature;
-        _pendingSecretClipboardSignature = null;
-
-        _secretClipboardClearCancellation?.Cancel();
-        _secretClipboardClearCancellation = null;
+        CancelSecretClipboardClear();
 
         await _clipboardService.ClearIfCurrentSignatureMatchesAsync(signature, cancellationToken);
     }

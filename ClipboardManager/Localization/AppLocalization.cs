@@ -38,6 +38,7 @@ public sealed class LocalizationService : INotifyPropertyChanged
     public string SettingsTitle => GetString();
     public string SettingsShellTitle => GetString();
     public string SettingsHistoryTitle => GetString();
+    public string SettingsSecretsTitle => GetString();
     public string SettingsShortcutsTitle => GetString();
     public string MinimizeToTraySetting => GetString();
     public string StartWithWindowsSetting => GetString();
@@ -52,6 +53,8 @@ public sealed class LocalizationService : INotifyPropertyChanged
     public string ClearLinkPreviewCacheSetting => GetString();
     public string ClearLinkPreviewCacheDescription => GetString();
     public string ClearLinkPreviewCacheButton => GetString();
+    public string ClearCopiedSecretsSetting => GetString();
+    public string ClearCopiedSecretsDescription => GetString();
     public string LinkRefreshNeverOption => GetString();
     public string LinkRefresh7DaysOption => GetString();
     public string LinkRefresh30DaysOption => GetString();
@@ -271,6 +274,11 @@ public sealed class LocalizationService : INotifyPropertyChanged
         return Format("SecretCopiedStatusFormat", clipboardSeconds, trustSeconds);
     }
 
+    public string SecretCopiedWithoutAutoClearStatus(int trustSeconds)
+    {
+        return Format("SecretCopiedWithoutAutoClearStatusFormat", trustSeconds);
+    }
+
     public string SecretRevealVerificationMessage(string secretName)
     {
         return Format("SecretRevealVerificationMessageFormat", secretName);
@@ -408,6 +416,7 @@ public sealed class AppSettings
     public bool MinimizeToTray { get; set; }
     public bool StartWithWindows { get; set; }
     public bool GlobalHotKeyEnabled { get; set; }
+    public bool ClearCopiedSecretsFromClipboard { get; set; } = true;
     public int HistoryBatchSize { get; set; } = DefaultHistoryBatchSize;
     public int LinkRefreshIntervalDays { get; set; } = DefaultLinkRefreshIntervalDays;
 
@@ -455,6 +464,7 @@ public static class AppSettingsStore
                 MinimizeToTray = document?.MinimizeToTray ?? false,
                 StartWithWindows = document?.StartWithWindows ?? false,
                 GlobalHotKeyEnabled = document?.GlobalHotKeyEnabled ?? false,
+                ClearCopiedSecretsFromClipboard = document?.ClearCopiedSecretsFromClipboard ?? true,
                 HistoryBatchSize = AppSettings.NormalizeHistoryBatchSize(
                     document?.HistoryBatchSize ?? AppSettings.DefaultHistoryBatchSize),
                 LinkRefreshIntervalDays = AppSettings.NormalizeLinkRefreshIntervalDays(
@@ -478,6 +488,7 @@ public static class AppSettingsStore
             MinimizeToTray = settings.MinimizeToTray,
             StartWithWindows = settings.StartWithWindows,
             GlobalHotKeyEnabled = settings.GlobalHotKeyEnabled,
+            ClearCopiedSecretsFromClipboard = settings.ClearCopiedSecretsFromClipboard,
             HistoryBatchSize = AppSettings.NormalizeHistoryBatchSize(settings.HistoryBatchSize),
             LinkRefreshIntervalDays = AppSettings.NormalizeLinkRefreshIntervalDays(settings.LinkRefreshIntervalDays)
         };
@@ -531,6 +542,7 @@ public static class AppSettingsStore
         public bool? MinimizeToTray { get; set; }
         public bool? StartWithWindows { get; set; }
         public bool? GlobalHotKeyEnabled { get; set; }
+        public bool? ClearCopiedSecretsFromClipboard { get; set; }
         public int? HistoryBatchSize { get; set; }
         public int? LinkRefreshIntervalDays { get; set; }
     }

@@ -33,6 +33,9 @@
   <data name="SettingsHistoryTitle" xml:space="preserve">
     <value>History</value>
   </data>
+  <data name="SettingsSecretsTitle" xml:space="preserve">
+    <value>Secrets</value>
+  </data>
   <data name="SettingsShortcutsTitle" xml:space="preserve">
     <value>Shortcuts</value>
   </data>
@@ -74,6 +77,12 @@
   </data>
   <data name="ClearLinkPreviewCacheButton" xml:space="preserve">
     <value>Clear</value>
+  </data>
+  <data name="ClearCopiedSecretsSetting" xml:space="preserve">
+    <value>Clear copied secrets</value>
+  </data>
+  <data name="ClearCopiedSecretsDescription" xml:space="preserve">
+    <value>Remove copied secret values from the Windows clipboard after 45 seconds.</value>
   </data>
   <data name="LinkRefreshNeverOption" xml:space="preserve">
     <value>Never</value>
@@ -428,6 +437,9 @@
   </data>
   <data name="SecretCopiedStatusFormat" xml:space="preserve">
     <value>Secret copied. Clipboard clears in {0} seconds, no password needed for {1} seconds</value>
+  </data>
+  <data name="SecretCopiedWithoutAutoClearStatusFormat" xml:space="preserve">
+    <value>Secret copied. No password needed for {0} seconds</value>
   </data>
   <data name="SecretRevealVerificationMessageFormat" xml:space="preserve">
     <value>Show secret: {0}</value>

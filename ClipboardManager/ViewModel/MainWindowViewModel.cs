@@ -286,6 +286,27 @@ public sealed partial class MainWindowViewModel : BaseViewModel
         }
     }
 
+    public bool ClearCopiedSecretsFromClipboard
+    {
+        get => _settings.ClearCopiedSecretsFromClipboard;
+        set
+        {
+            if (_settings.ClearCopiedSecretsFromClipboard == value)
+            {
+                return;
+            }
+
+            _settings.ClearCopiedSecretsFromClipboard = value;
+            OnPropertyChanged();
+            SaveSettings();
+
+            if (!value)
+            {
+                CancelSecretClipboardClear();
+            }
+        }
+    }
+
     public IReadOnlyList<int> HistoryBatchSizeOptions { get; } = [25, 50, 100, 200, 500, 1000];
 
     public int HistoryBatchSize

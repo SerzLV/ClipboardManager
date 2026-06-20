@@ -33,6 +33,9 @@
   <data name="SettingsHistoryTitle" xml:space="preserve">
     <value>История</value>
   </data>
+  <data name="SettingsSecretsTitle" xml:space="preserve">
+    <value>Секреты</value>
+  </data>
   <data name="SettingsShortcutsTitle" xml:space="preserve">
     <value>Горячие клавиши</value>
   </data>
@@ -74,6 +77,12 @@
   </data>
   <data name="ClearLinkPreviewCacheButton" xml:space="preserve">
     <value>Очистить</value>
+  </data>
+  <data name="ClearCopiedSecretsSetting" xml:space="preserve">
+    <value>Скопированные секреты</value>
+  </data>
+  <data name="ClearCopiedSecretsDescription" xml:space="preserve">
+    <value>Удалять значение секрета из буфера обмена Windows через 45 секунд.</value>
   </data>
   <data name="LinkRefreshNeverOption" xml:space="preserve">
     <value>Никогда</value>
@@ -428,6 +437,9 @@
   </data>
   <data name="SecretCopiedStatusFormat" xml:space="preserve">
     <value>Секрет скопирован. Буфер очистится через {0} сек., пароль не нужен {1} сек.</value>
+  </data>
+  <data name="SecretCopiedWithoutAutoClearStatusFormat" xml:space="preserve">
+    <value>Секрет скопирован. Пароль не нужен {0} сек.</value>
   </data>
   <data name="SecretRevealVerificationMessageFormat" xml:space="preserve">
     <value>Показать секрет: {0}</value>

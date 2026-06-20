@@ -3,6 +3,8 @@ using System.IO;
 using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
+using System.Windows;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using ClipboardManager.Helper;
 using ClipboardManager.Interfaces;
@@ -21,12 +23,6 @@ public sealed class LinkPreviewImageService : ILinkPreviewImageService
         Timeout = TimeSpan.FromSeconds(5)
     };
 
-    private static readonly string DefaultImagePath = Path.Combine(
-        AppContext.BaseDirectory,
-        "Resources",
-        "Images",
-        "noImage.png");
-
     private static readonly string CacheDirectoryPath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         ApplicationDataDirectoryName,
@@ -35,13 +31,18 @@ public sealed class LinkPreviewImageService : ILinkPreviewImageService
 
     public LinkPreviewImageService()
     {
-        DefaultImageSource = LoadLocalImage(DefaultImagePath, 96);
+        DefaultImageSource = CreateDefaultImageSource();
     }
 
     public BitmapSource? DefaultImageSource { get; }
 
     public bool CanLoadPreview(string imageUrl)
     {
+        if (LinkPreviewImageDefaults.IsDefault(imageUrl))
+        {
+            return false;
+        }
+
         return Uri.TryCreate(imageUrl, UriKind.Absolute, out var uri)
             && (uri.Scheme == Uri.UriSchemeHttp
                 || uri.Scheme == Uri.UriSchemeHttps
@@ -50,6 +51,11 @@ public sealed class LinkPreviewImageService : ILinkPreviewImageService
 
     public bool HasCachedPreview(string imageUrl)
     {
+        if (LinkPreviewImageDefaults.IsDefault(imageUrl))
+        {
+            return true;
+        }
+
         if (!Uri.TryCreate(imageUrl, UriKind.Absolute, out var uri))
         {
             return false;
@@ -110,6 +116,11 @@ public sealed class LinkPreviewImageService : ILinkPreviewImageService
         int decodePixelWidth,
         CancellationToken cancellationToken = default)
     {
+        if (LinkPreviewImageDefaults.IsDefault(imageUrl))
+        {
+            return DefaultImageSource;
+        }
+
         if (!Uri.TryCreate(imageUrl, UriKind.Absolute, out var uri))
         {
             return DefaultImageSource;
@@ -219,6 +230,63 @@ public sealed class LinkPreviewImageService : ILinkPreviewImageService
 
         var imageData = File.ReadAllBytes(filePath);
         return BitmapSourceExtensions.ByteArrayToBitmapSource(imageData, decodePixelWidth);
+    }
+
+    private static BitmapSource CreateDefaultImageSource()
+    {
+        const int size = 96;
+
+        var visual = new DrawingVisual();
+        using (var context = visual.RenderOpen())
+        {
+            var backgroundBrush = new SolidColorBrush(Color.FromRgb(240, 253, 250));
+            var borderPen = new Pen(new SolidColorBrush(Color.FromRgb(153, 246, 228)), 1.5);
+            var cardBrush = new SolidColorBrush(Color.FromRgb(255, 255, 255));
+            var mutedPen = new Pen(new SolidColorBrush(Color.FromRgb(148, 163, 184)), 2);
+            var accentBrush = new SolidColorBrush(Color.FromRgb(20, 184, 166));
+            var accentPen = new Pen(accentBrush, 3);
+
+            context.DrawRoundedRectangle(
+                backgroundBrush,
+                borderPen,
+                new Rect(0.75, 0.75, size - 1.5, size - 1.5),
+                18,
+                18);
+
+            context.DrawRoundedRectangle(
+                cardBrush,
+                mutedPen,
+                new Rect(23, 26, 50, 42),
+                7,
+                7);
+
+            context.DrawEllipse(
+                accentBrush,
+                null,
+                new Point(60, 40),
+                4,
+                4);
+
+            var mountain = new StreamGeometry();
+            using (var geometry = mountain.Open())
+            {
+                geometry.BeginFigure(new Point(29, 63), true, true);
+                geometry.LineTo(new Point(42, 49), true, false);
+                geometry.LineTo(new Point(51, 58), true, false);
+                geometry.LineTo(new Point(57, 52), true, false);
+                geometry.LineTo(new Point(68, 64), true, false);
+            }
+
+            mountain.Freeze();
+            context.DrawGeometry(accentBrush, null, mountain);
+
+            context.DrawLine(accentPen, new Point(33, 76), new Point(63, 76));
+        }
+
+        var bitmap = new RenderTargetBitmap(size, size, 96, 96, PixelFormats.Pbgra32);
+        bitmap.Render(visual);
+        bitmap.Freeze();
+        return bitmap;
     }
 
     private static async Task WriteCacheAsync(

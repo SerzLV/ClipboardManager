@@ -18,6 +18,7 @@ The app is designed as a quiet productivity tool: fast search, one-click copy ba
 - Windows verification before revealing or copying a secret, with Windows Hello/PIN support and a password fallback.
 - 30-second trusted copy window after successful secret verification.
 - Secret values auto-hide after 30 seconds and copied secrets are cleared from the clipboard after 45 seconds when still unchanged.
+- Optional setting to disable automatic clipboard clearing for copied secrets.
 - Smart URL cards with title, description, and Open Graph image when metadata is available.
 - Cached link preview images stored locally, so repeated app launches do not re-download every preview.
 - Background stale-link refresh with configurable intervals: never, every 7 days, or every 30 days.
@@ -66,6 +67,13 @@ The app is designed as a quiet productivity tool: fast search, one-click copy ba
 
 ## Getting Started
 
+### Download Release
+
+For normal use, download the latest build from [GitHub Releases](https://github.com/SerzLV/ClipboardManager/releases):
+
+- `ClipboardManager-Setup-<version>.exe` installs the app for the current Windows user and creates Start Menu shortcuts.
+- `ClipboardManager-<version>-win-x64-portable.zip` runs as a portable self-contained build.
+
 ### Requirements
 
 - Windows 10 version 1903 or newer.
@@ -92,6 +100,19 @@ The release output is generated under:
 ```text
 ClipboardManager\bin\Release\net10.0-windows10.0.18362.0\
 ```
+
+### Build Release Artifacts
+
+```powershell
+.\scripts\build-release.ps1 -Version 1.0.0
+```
+
+The script creates:
+
+- `artifacts\ClipboardManager-1.0.0-win-x64-portable.zip`
+- `artifacts\installer\ClipboardManager-Setup-1.0.0.exe` when Inno Setup 6 is installed
+
+GitHub Actions also builds these artifacts automatically when a tag such as `v1.0.0` is pushed.
 
 ## How It Works
 
@@ -157,7 +178,6 @@ Import merges data into the current history and avoids obvious duplicates.
 - History retention rules and cleanup policies.
 - Optional quick-paste actions for favorites.
 - Automated tests for import/export and repository behavior.
-- Packaged installer or GitHub Releases build pipeline.
 
 ## Disclaimer
 

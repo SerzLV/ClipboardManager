@@ -17,12 +17,6 @@ public sealed class LinkMetadataService : ILinkMetadataService
         Timeout = TimeSpan.FromSeconds(5)
     };
 
-    private static readonly string DefaultImage = Path.Combine(
-        AppContext.BaseDirectory,
-        "Resources",
-        "Images",
-        "noImage.png");
-
     public async Task<UrlModel?> GetMetadataAsync(string url, CancellationToken cancellationToken = default)
     {
         if (!TryCreateSupportedUri(url, out var uri))
@@ -85,7 +79,7 @@ public sealed class LinkMetadataService : ILinkMetadataService
         {
             Url = uri.ToString(),
             Title = uri.Host,
-            ImageUrl = DefaultImage,
+            ImageUrl = LinkPreviewImageDefaults.ImageUrl,
             MetadataUpdatedAt = DateTime.UtcNow
         };
     }
@@ -110,7 +104,7 @@ public sealed class LinkMetadataService : ILinkMetadataService
     {
         if (string.IsNullOrWhiteSpace(imageUrl))
         {
-            return DefaultImage;
+            return LinkPreviewImageDefaults.ImageUrl;
         }
 
         if (Uri.TryCreate(imageUrl, UriKind.Absolute, out var absoluteImageUri))
@@ -120,7 +114,7 @@ public sealed class LinkMetadataService : ILinkMetadataService
 
         return Uri.TryCreate(pageUri, imageUrl, out var relativeImageUri)
             ? relativeImageUri.ToString()
-            : DefaultImage;
+            : LinkPreviewImageDefaults.ImageUrl;
     }
 
     private static string? GetMetaContent(HtmlDocument document, params string[] names)
