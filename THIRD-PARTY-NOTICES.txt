@@ -2,7 +2,7 @@ ClipVault Studio - Third-Party Notices
 =======================================
 
 This file identifies open-source software distributed with ClipVault Studio
-2.0.4 and the optional AI model that the application can download only after
+2.1.0 and the optional AI model that the application can download only after
 an explicit user request. ClipVault Studio does not claim ownership of these
 third-party works.
 

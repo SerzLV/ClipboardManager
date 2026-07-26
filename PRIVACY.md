@@ -1,6 +1,6 @@
 # ClipVault Studio Privacy Notice
 
-Effective date: July 22, 2026
+Effective date: July 16, 2026
 
 Publisher: Serz Studio
 
@@ -19,9 +19,17 @@ While ClipVault Studio is running, it can read supported content copied by the c
 - images;
 - file references and paths.
 
-The application processes this data to provide history, search, favorites, image descriptions, link previews, text editing and comparison, collections, secure secrets, file previews, and optional local AI assistance.
+The application processes this data to provide history, search, Quick Paste, favorites, image descriptions, link previews, text editing, collections, secure secrets, file previews, and optional local AI assistance.
 
 ClipVault Studio does not automatically scan the user's documents or import the Windows clipboard history on first launch.
+
+### Quick Paste
+
+When the user opens Quick Paste, ClipVault Studio reads recent or matching records from the same local clipboard database. Protected secrets are excluded.
+
+When the user confirms a result, the app places that selected value on the Windows clipboard. For a normal `Enter` action, it also attempts to restore the application that was active before Quick Paste opened and sends the standard paste shortcut. `Ctrl+Enter` copies without sending paste. This processing stays on the device and does not contact Serz Studio or a cloud service.
+
+Windows can reject focus restoration or synthetic input. In that case the selected value remains on the clipboard for manual paste. The app validates that the target window still belongs to the originally captured process before sending input.
 
 ## Local Storage
 
@@ -36,12 +44,6 @@ Regular clipboard history, images, link metadata, favorites, encrypted secrets, 
 File history records store file names and paths. ClipVault Studio does not copy the original file contents into the clipboard database.
 
 Image history records store image bytes in the local database.
-
-### Text Compare
-
-Pro Text Compare processes only the clipboard text, pasted text, or supported local text files that the user explicitly selects for comparison. Comparison input, aligned differences, search state, and minimap state are processed locally in memory.
-
-Text Compare does not autosave comparison input or results, overwrite selected files, or modify clipboard history or the application database. Content is retained elsewhere only when the user explicitly copies or saves it through another application workflow.
 
 ### Link Preview Cache
 
@@ -68,7 +70,7 @@ ClipVault Studio records startup, shutdown, and unexpected application failures 
 %LOCALAPPDATA%\ClipboardManager\Logs\crash.previous.log
 ```
 
-The current log rotates at 512 KiB and only one previous log is retained, limiting the combined diagnostic history to approximately 1 MiB. Entries can include the application and Windows version, error source, stack trace, support error ID, and file paths present in exception context. Clipboard content is not intentionally written as a diagnostic field, but exception messages from Windows or a dependency can contain contextual data.
+The current log rotates at 512 KiB and only one previous log is retained. Diagnostic entries can include the application and Windows version, error source, stack trace, support error ID, and file paths present in exception context. Clipboard content is not intentionally written as a diagnostic field, but exception messages from Windows or a dependency can contain contextual data.
 
 Logs remain local, are never uploaded automatically, and can be opened or cleared from **Settings > Diagnostics**. Users should review and sanitize a log before sharing it.
 
@@ -144,7 +146,7 @@ Hugging Face and its infrastructure providers can receive standard network infor
 
 AI prompts, source text, and generated responses are processed locally through LLamaSharp. They are not sent to Serz Studio, Hugging Face, OpenAI, Microsoft AI services, or another cloud AI endpoint by ClipVault Studio.
 
-Microsoft Store can process normal product, subscription, purchase, license, and account information when the app checks or acquires a monthly or Lifetime Pro add-on. That processing is governed by Microsoft's privacy terms. ClipVault Studio receives entitlement status needed to unlock Pro, but it does not receive the user's payment card details.
+Microsoft Store can process normal product, purchase, license, and account information when the app checks or purchases the durable Pro add-on. That processing is governed by Microsoft's privacy terms. ClipVault Studio does not receive the user's payment card details.
 
 ## Backup And Import
 

@@ -1,9 +1,6 @@
 # ClipVault Studio User Guide
 
-This guide describes the current Microsoft Store Free, trial, and Pro
-workflows in ClipVault Studio 2.0.4. This public GitHub repository contains
-product documentation and support resources; Microsoft Store is the official
-application distribution channel.
+This guide describes the current Free, trial, and Pro workflows in ClipVault Studio 2.1.0.
 
 ## First Launch
 
@@ -17,6 +14,25 @@ The application begins recording supported clipboard changes while it is running
 - copied file references.
 
 The default interface language is English. Russian can be selected in Settings.
+
+## Quick Paste
+
+Quick Paste is available in Free, trial, and Pro. Configure its dedicated global hotkey under **Settings > Hotkey**, then press it while working in another application.
+
+The compact palette remembers the application that was active before it opened:
+
+- recent text, links, files, and images appear immediately;
+- typing searches the complete local history, including records not loaded in the main window;
+- arrow keys change selection;
+- `Enter` copies the selected item, restores the previous application, and requests paste;
+- `Ctrl+Enter` copies only;
+- `Escape` clears a non-empty query first and closes the palette when the query is empty.
+
+Protected secrets never appear in Quick Paste. Opening or searching the palette does not modify history.
+
+Windows can prevent one application from restoring or sending input to another, especially when the target is elevated. In that case ClipVault Studio keeps the selected content on the clipboard, reports the fallback, and asks you to press `Ctrl+V` manually. Before sending paste, the app verifies that the target window still belongs to the process that was active when the palette opened.
+
+If the configured combination is already registered by another application, choose a different Quick Paste hotkey. On first use ClipVault Studio probes available combinations instead of silently replacing another global shortcut.
 
 ## Main History
 
@@ -32,8 +48,6 @@ Each item exposes only the actions that apply to its type. Common actions includ
 - delete.
 
 The default order is newest first. Use the compact sort control beside Search to switch between newest-first and oldest-first ordering.
-
-The current desktop interface supports light and dark themes. Select an item in a supported library or collection view to open its Inspector, where focused preview, metadata, and type-specific actions remain available without leaving the current list.
 
 ### Lazy Loading
 
@@ -114,6 +128,17 @@ Image history supports:
 - search by name or description;
 - save as PNG, JPG, or BMP.
 
+Pro and the seven-day Pro trial add a focused annotation editor. Open an image preview or its Inspector and select Edit image. The editor supports:
+
+- movable text annotations with configurable font size;
+- outline rectangles with optional color fill and adjustable opacity;
+- arrows plus straight lines and underlines with configurable thickness;
+- a curated color palette;
+- select, move, delete, clear, undo, and redo actions;
+- zoom controls and automatic fit when the editor opens.
+
+Select Save as copy to render the annotations into a new PNG entry in Images. The original history image is never modified or replaced. Closing or cancelling the editor discards unsaved annotations.
+
 Image bytes are stored in the local history database and are included in regular backup exports.
 
 ## Text
@@ -172,6 +197,31 @@ Stylesheet tools provide formatting, minification, and structural validation for
 
 C#, JavaScript, TypeScript, Python, HTML, YAML, and generic code use syntax-aware editing where a matching highlighting definition is available.
 
+### Text Compare
+
+Text Compare is available in Pro and during the seven-day Pro trial. Open it from the Compare icon in the application title bar to start with an empty two-file workspace. You can also open a text item or supported text file in the workbench and select Compare in the editor toolbar; the current document is then placed on the Original side.
+
+Use the History button above either side to choose from the complete local Text library. The picker initially shows up to 40 newest text records and searches the database as you type, so older records do not need to be loaded by scrolling the main window. You can also use Choose file, drag one supported text or code file directly onto a pane, or paste and edit text manually. Selected history or file labels stay visible above their editors. Then select Compare. The workspace provides:
+
+- aligned Original and Changed panes with physical source line numbers;
+- added, removed, and modified line counts;
+- optional word-level highlighting inside modified lines and theme-aware diff colors;
+- synchronized vertical result scrolling, independent horizontal scrolling, and movable source/result splitters;
+- an interactive change map on the right for long-document overview and navigation;
+- instant Collapse unchanged mode that keeps nearby context visible;
+- previous/next difference navigation;
+- search across both result panes;
+- independent syntax highlighting for the Original and Changed documents;
+- optional Word wrap across all four editors, disabled by default and applied without recalculating the diff;
+- Ignore spaces, Ignore empty lines, and Ignore case options;
+- swap, searchable Text-history selection, choose file, drag-and-drop, clear, paste, and copy actions.
+
+Keyboard navigation is available for repeated review work: `Ctrl+Enter` compares, `Ctrl+F` focuses result search, `F3` and `Shift+F3` move between matches, and `Alt+Down` / `Alt+Up` move between differences. `Escape` first closes an open Text-history picker or clears the active result search.
+
+File loading uses the same guarded reader as the file workbench: only supported text formats up to 5 MiB are accepted. Reopening the workspace or closing the app cancels unfinished reads, and a stale read cannot replace the current document. Changing either input invalidates an older result and its search/navigation state. Comparison and result search run outside the UI thread, and a newer request supersedes an unfinished one. Result search is capped at 10,000 displayed matches so pathological inputs cannot grow UI state without bound. Collapse unchanged is enabled only when differences exist and only changes the displayed projection, so toggling it does not rerun the comparison or alter the added, removed, and modified counts. At the beginning or end of a document, only the context nearest a difference remains visible. Entering a search temporarily expands collapsed regions so matches in unchanged text remain discoverable; clearing the search restores the collapsed projection.
+
+Text Compare is intentionally temporary and non-destructive. It has no auto-save and does not write edited text back to selected files, clipboard history, or the database. Use Copy when you want to keep a result elsewhere.
+
 ## Files
 
 The Files tab stores file references and paths. It does not copy the original file into ClipVault Studio.
@@ -193,34 +243,6 @@ Preview restrictions:
 - text must use UTF-8 or a supported Unicode byte-order mark;
 - preview is read-only and never overwrites the original file.
 
-## Text Compare
-
-Text Compare is available in Pro and during the seven-day Pro trial. Open it from the main toolbar or from a supported text/file workbench.
-
-Each side can be populated independently from:
-
-- searchable text history;
-- a supported local text file;
-- pasted text;
-- the current workbench content when opened from an editor.
-
-Select **Compare** after both sides are ready. Available options include ignoring spaces, empty lines, or letter case, plus word-level differences and syntax colors.
-
-The result workspace provides:
-
-- aligned left/right rows and original source line numbers;
-- separate added, removed, and modified counters;
-- word-level highlights inside changed lines;
-- synchronized vertical scrolling while horizontal scrolling remains independent;
-- movable splitters for the source and result panes;
-- a minimap showing change locations across the whole comparison;
-- search and previous/next difference navigation;
-- **Collapse unchanged**, which replaces long unchanged runs with a compact separator while preserving nearby context.
-
-Comparison work runs in the background and superseded requests are cancelled. Programmatic scroll updates are suppressed briefly to prevent feedback loops and visible jumping between panes.
-
-Text Compare is intentionally non-destructive. It has no autosave path, does not overwrite selected files, and does not modify clipboard history or the database. Copy any result that you want to retain before closing the window.
-
 ## Collections
 
 Collections are a Pro organization layer over existing history.
@@ -231,8 +253,6 @@ Create a collection from the Collections pane, choose a name and accent color, t
 - dragging a history item onto a collection.
 
 A collection can contain mixed item types in one view. Deleting a collection removes only its membership records; the underlying clipboard items remain in history.
-
-Selecting an item in a collection updates the Inspector with its preview, metadata, and available actions. This keeps mixed text, links, images, and files in one collection workflow instead of switching between library tabs.
 
 Deleting an underlying history item also removes stale collection references.
 
@@ -268,7 +288,15 @@ AI Assist can open as a full workspace or as a movable popover inside the text/f
 
 Response controls include language, style, detail level, source format preservation, code block preservation, and risk mentions where relevant.
 
-In the full AI workspace, the left Actions/Library panel and the right Run Settings panel can be hidden independently. Use `Ctrl+Alt+L` and `Ctrl+Alt+R` to toggle them. Advanced run settings remain collapsed until requested, reducing visual noise during normal generation.
+### Workspace Layout
+
+The full AI Assist workspace keeps the response in the center and allows both side panels to be hidden independently:
+
+- actions and library: use the left-panel button or `Ctrl+Alt+L`;
+- run settings: use the settings-panel button or `Ctrl+Alt+R`;
+- advanced context and history options stay collapsed until needed.
+
+Hiding either panel expands the response workspace without clearing the source, request, or current response. The panel state remains available while the AI Assist window stays open in the current app session.
 
 ### Saved Prompts And History
 
@@ -300,30 +328,28 @@ The seven-day Pro trial:
 - returns the app to Free when it expires;
 - does not delete user-created history or collections.
 
-After the trial, Pro is available through either:
+Pro can be activated through either a monthly Microsoft Store subscription or a one-time Lifetime purchase. The plan chooser shows Store-localized prices. Microsoft Store handles checkout, subscription renewal/cancellation, and entitlement restoration; no ClipVault account is required. Monthly subscribers can manage billing through their Microsoft account and can upgrade to Lifetime at any time. Existing Lifetime owners keep permanent Pro access.
 
-- a monthly Microsoft Store subscription;
-- a one-time Lifetime Microsoft Store purchase.
-
-Both plans unlock the same current Pro feature set. The Lifetime purchase does not expire. Subscription renewal, cancellation, purchase restoration, regional availability, and payment processing are handled by Microsoft Store. No ClipVault account is required.
+Clipboard monitoring remains a Free capability. Trial expiration or a temporary Store-license refresh never stops capture; only Pro tools become locked.
 
 ## Settings
 
 Current settings include:
 
 - interface language;
-- light or dark appearance;
 - minimize to tray;
 - start with Windows;
 - enable and configure the global hotkey;
+- enable and configure the separate Quick Paste hotkey;
 - automatically clear copied secrets;
 - history load batch size;
 - link refresh interval;
 - import and export;
 - clear link preview cache;
 - clear regular clipboard history;
-- open or clear bounded local diagnostic logs;
 - AI history retention and source-text storage inside AI Assist.
+
+The **About** page shows the installed version and edition and provides direct links to Microsoft Store, this user guide, privacy information, support, and the bundled third-party notices.
 
 History sort order is controlled from the compact sort button beside Search and is remembered automatically.
 
@@ -359,13 +385,26 @@ Import merges regular data into the current database and avoids obvious duplicat
 %LOCALAPPDATA%\ClipboardManager\AI\ai-assistant.sqlite
 %LOCALAPPDATA%\ClipboardManager\Models
 %LOCALAPPDATA%\ClipboardManager\Logs\crash.log
-%LOCALAPPDATA%\ClipboardManager\Logs\crash.previous.log
 %APPDATA%\ClipboardManager\settings.json
 ```
 
 The `CLIPVAULT_DATA_DIR` environment variable can redirect Local and Roaming application data roots for development and automated testing.
 
 ## Troubleshooting
+
+### Diagnostics And Recoverable Errors
+
+ClipVault Studio records startup, shutdown, and unexpected failures in a bounded local diagnostic log. Recoverable errors remain visible in the application status with a short error ID instead of silently closing the application.
+
+Open **Settings > Diagnostics** to:
+
+- open the current log;
+- open the log folder;
+- copy a support summary;
+- dismiss the current error;
+- clear the current and previous logs.
+
+The current log is limited to 512 KiB and rotates once to `crash.previous.log`, so both files use approximately 1 MiB at most. Logs remain on the device and are never uploaded automatically. Review them before sharing because file paths or clipboard-related exception context may be present.
 
 ### The App Does Not Capture A Copy
 
@@ -390,19 +429,11 @@ Open AI Assist and choose Resume. If the server does not accept the previous ran
 
 Inference runs on the CPU. Performance depends on processor speed, available memory, prompt size, source size, and requested response length.
 
-### Text Compare Looks Misaligned Or Jumps
-
-- Run Compare again after changing either source or an ignore option.
-- Confirm both sides are plain supported text and the selected source files still exist.
-- Disable **Collapse unchanged** temporarily when inspecting original line placement.
-- Vertical movement is synchronized; horizontal scrolling is intentionally independent for differently indented or long lines.
-- If scrolling repeatedly changes without input, include sanitized line counts and the application version in the support report.
-
 ### Pro Is Not Detected
 
 - Confirm the app was installed from Microsoft Store.
-- Confirm Windows is signed in to the Microsoft account that owns the Lifetime add-on or active monthly subscription.
+- Confirm Windows is signed in to the Microsoft account that owns the Lifetime add-on or active Monthly subscription.
 - Restart the Store app and ClipVault Studio.
-- Use the purchase/restore flow again. ClipVault Studio verifies existing Store entitlement before presenting a new purchase.
+- Use the purchase/restore flow again; an already-owned add-on is not charged twice.
 
 See [SUPPORT.md](../SUPPORT.md) before sharing diagnostics.

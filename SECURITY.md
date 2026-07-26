@@ -27,6 +27,8 @@ Relevant reports include:
 
 - unintended disclosure of clipboard history or protected secrets;
 - bypass of a security boundary implemented by the application;
+- Quick Paste targeting or focus-restoration behavior that could paste into an
+  application other than the verified destination;
 - unsafe handling of imported backups, local files, links, or model files;
 - vulnerabilities in local storage, diagnostics, or optional AI features.
 

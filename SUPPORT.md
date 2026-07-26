@@ -12,9 +12,9 @@ Please include:
 
 - ClipVault Studio version.
 - Windows version and whether the system is x64.
-- Confirm that the application was installed or updated through Microsoft Store.
+- Installation source: Microsoft Store.
 - Current edition: Free, 7-day trial, or Pro.
-- The affected area: clipboard capture, search, secret, link, image, file preview, text workbench, Text Compare, collection, AI Assist, tray, startup, hotkey, import/export, purchase, or trial.
+- The affected area: clipboard capture, search, Quick Paste, secret, link, image, file preview, text workbench, collection, AI Assist, tray, startup, hotkey, import/export, purchase, or trial.
 - Clear reproduction steps.
 - What you expected.
 - What happened instead.
@@ -30,16 +30,14 @@ For AI issues, also include:
 - the selected AI action and response language;
 - approximate source length, without including private source text.
 
-For Text Compare issues, also include:
+For Microsoft Store licensing issues, state whether Windows is signed in to the account that owns the Pro add-on. Do not include receipts, payment data, account tokens, or authentication screenshots containing personal information.
 
-- whether each side came from clipboard history, pasted text, or a local file;
-- the enabled ignore/word-diff options;
-- approximate line counts and whether Collapse unchanged was enabled;
-- whether the issue affects scrolling, the minimap, search, or rendered differences.
+For Quick Paste issues, include:
 
-Use sanitized sample text when possible. Text Compare does not autosave its input or result, so retain any minimal reproduction separately before closing the comparison window.
-
-For Microsoft Store licensing issues, state whether Windows is signed in to the account that owns the Lifetime add-on or active monthly subscription. Do not include receipts, payment data, account tokens, or authentication screenshots containing personal information.
+- the configured Quick Paste hotkey;
+- whether the palette opened and showed recent/search results;
+- whether `Ctrl+Enter` copied successfully;
+- whether normal `Enter` pasted, fell back to copy-only, or targeted an elevated application.
 
 ## Sensitive Information
 
@@ -63,6 +61,7 @@ Create a minimal sanitized example whenever possible.
 - Confirm the original file still exists before opening a stored file reference.
 - Confirm the optional AI model has completed SHA-256 verification.
 - Confirm Pro features are active through either the trial or Microsoft Store entitlement.
-- Restart Microsoft Store and ClipVault Studio if a completed Pro purchase or subscription is not immediately reflected.
+- Restart Microsoft Store and ClipVault Studio if a completed Pro purchase is not immediately reflected.
+- If Quick Paste cannot paste into an elevated application, use `Ctrl+Enter` and paste manually from a process with matching privileges.
 
 See [docs/USER_GUIDE.md](docs/USER_GUIDE.md) for feature behavior and troubleshooting.

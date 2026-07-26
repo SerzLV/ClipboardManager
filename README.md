@@ -5,12 +5,15 @@
 ClipVault Studio is a private Windows clipboard workspace for people who work
 with text, links, screenshots, images, and file references throughout the day.
 It keeps clipboard history on the device, provides complete-history search,
-and offers optional Pro tools for organization, structured text, file preview,
-image annotation, text comparison, and local AI assistance.
+adds keyboard-first Quick Paste, and offers optional Pro tools for organization,
+structured text, file preview, image annotation, text comparison, and local AI
+assistance.
 
 This public repository is the official **documentation and support portal** for
 ClipVault Studio. Application source code and build infrastructure are not
 published here.
+
+Current version: **2.1.0**.
 
 ## Editions
 
@@ -19,10 +22,28 @@ published here.
 - Clipboard history for files, text, links, and images.
 - Favorites and protected secrets.
 - Complete-history search, sorting, and incremental loading.
+- Quick Paste palette for recent and searched text, links, files, and images.
 - Link cards and local preview caching.
 - Image preview, descriptions, search, copy, and save.
-- Tray mode, Windows startup, global hotkey, and JSON backup/import.
+- Tray mode, Windows startup, configurable app and Quick Paste hotkeys, and
+  JSON backup/import.
 - Light and dark themes with English and Russian localization.
+
+## Quick Paste
+
+Quick Paste opens a compact mixed-history palette over the application you
+were using:
+
+- press the configurable Quick Paste hotkey to see recent clipboard items;
+- type to search the complete local history;
+- press `Enter` to paste into the previously active application;
+- press `Ctrl+Enter` to copy without pasting;
+- press `Escape` to clear the query, then again to close the palette.
+
+Protected secrets never appear in Quick Paste. Before pasting, ClipVault Studio
+revalidates the destination window and owning process. If Windows blocks focus
+restoration or synthetic input, the item remains copied and the app reports a
+copy-only fallback instead of pasting into an unrelated window.
 
 ### Pro
 
@@ -67,6 +88,15 @@ locally on the CPU through LLamaSharp. Saved prompts and optional AI response
 history are encrypted on the device.
 
 Read the complete [Privacy Notice](PRIVACY.md).
+
+## About And Diagnostics
+
+**Settings > About** shows the installed version and active edition and provides
+direct access to Microsoft Store, the user guide, privacy notice, support, and
+the third-party notices shipped with the app.
+
+**Settings > Diagnostics** provides a bounded local crash log and a sanitized
+support-summary workflow. Logs are never uploaded automatically.
 
 ## Screenshots
 

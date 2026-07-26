@@ -1,18 +1,15 @@
 # Open-Source Components
 
-ClipVault Studio uses permissively licensed open-source software while retaining
-the original licenses of every third-party component listed here. This public
-repository contains product documentation and notices, not application source
-code.
+ClipVault Studio 2.1.0 is built with permissively licensed open-source software. This inventory is generated from the production project references and the resolved NuGet dependency graph used by the Store build.
 
-The Store build includes a redistributable `THIRD-PARTY-NOTICES.txt` file. This page is a readable inventory for users and reviewers; it is not legal advice.
+The application itself is licensed under MIT. Third-party projects and the optional AI model keep their own licenses. This page is a practical inventory, not legal advice. Redistributable notices are included with every build in `THIRD-PARTY-NOTICES.txt`.
 
-## Production Dependencies
+## Direct Production Dependencies
 
 | Component | Version | Purpose | License | Project |
 | --- | ---: | --- | --- | --- |
 | AvalonEdit | 6.3.1.120 | Structured text and source editor | MIT | [AvalonEdit](https://github.com/icsharpcode/AvalonEdit) |
-| DiffPlex | 1.9.0 | Local side-by-side line and word comparison | Apache-2.0 | [DiffPlex](https://github.com/mmanela/diffplex) |
+| DiffPlex | 1.9.0 | Side-by-side line and word comparison | Apache-2.0 | [DiffPlex](https://github.com/mmanela/diffplex) |
 | HtmlAgilityPack | 1.12.4 | Link metadata HTML parsing | MIT | [Html Agility Pack](https://html-agility-pack.net/) |
 | LLamaSharp | 0.27.0 | Local GGUF model inference | MIT | [LLamaSharp](https://github.com/SciSharp/LLamaSharp) |
 | LLamaSharp.Backend.Cpu | 0.27.0 | CPU backend for local inference | MIT | [LLamaSharp](https://github.com/SciSharp/LLamaSharp) |
@@ -25,11 +22,17 @@ The Store build includes a redistributable `THIRD-PARTY-NOTICES.txt` file. This 
 | Microsoft.SqlServer.TransactSql.ScriptDom | 180.37.3 | SQL parsing, formatting, and validation | MIT | [ScriptDOM](https://github.com/microsoft/SqlScriptDOM) |
 | SQLitePCLRaw.bundle_e_sqlite3 | 3.0.3 | Native SQLite provider bundle | Apache-2.0 | [SQLitePCL.raw](https://github.com/ericsink/SQLitePCL.raw) |
 
-Supporting NuGet packages include MIT-licensed CommunityToolkit.HighPerformance, ControlzEx, Microsoft BCL/EF Core/Extensions/XAML Behaviors packages, System.Interactive.Async, and System.Linq.Async. SQLitePCLRaw supporting packages use Apache-2.0. SQLite itself is dedicated to the public domain.
+## Resolved Runtime Dependencies
 
-## Icons
+The NuGet graph also resolves supporting packages used by the components above:
 
-MahApps.Metro.IconPacks control code is MIT licensed. ClipVault Studio uses glyphs from icon projects that retain their own licenses:
+- CommunityToolkit.HighPerformance 8.4.2 and ControlzEx 4.4.0 under MIT;
+- Microsoft BCL, Entity Framework Core, Extensions, XAML Behaviors, and tensor packages under MIT;
+- System.Interactive.Async and System.Linq.Async 7.0.0 under MIT;
+- SQLitePCLRaw core/config/provider packages 3.0.3 under Apache-2.0;
+- SourceGear.sqlite3 3.50.4.5, which distributes SQLite; SQLite is dedicated to the public domain.
+
+`MahApps.Metro.IconPacks` resolves its generated icon-pack assemblies. ClipVault Studio currently renders Lucide, Material, and Font Awesome glyphs. The control library is MIT; the original icon projects retain their licenses:
 
 - Lucide icons: ISC;
 - Material Design Icons: Apache-2.0;
@@ -43,9 +46,21 @@ AI Assist recommends `Qwen3-4B-Q4_K_M.gguf` from the official [Qwen3-4B-GGUF rep
 - Quantization: `Q4_K_M`.
 - Approximate download size: 2.5 GB.
 - Expected SHA-256: `7485FE6F11AF29433BC51CAB58009521F205840F5B4AE3A32FA7F92E8534FDF5`.
-- License: [Apache-2.0](https://huggingface.co/Qwen/Qwen3-4B-GGUF/blob/main/LICENSE).
+- License: Apache-2.0.
 - Delivery: downloaded only after an explicit user action.
-- Packaging: not included in the Microsoft Store package, this documentation repository, or backups.
+- Packaging: not included in the Microsoft Store package, GitHub releases, source repository, or backups.
 - Runtime: processed locally on the CPU through LLamaSharp; prompts and responses are not sent to a cloud AI endpoint.
 
-ClipVault Studio verifies the expected model file with SHA-256 before first use. See the [Privacy Notice](../PRIVACY.md) for storage, network, and local-processing details.
+The application verifies the expected file with SHA-256 before first use. A future model replacement must update the model ID, download URL, hash, size, license link, privacy text, this inventory, and `THIRD-PARTY-NOTICES.txt` in the same release.
+
+## License Files In Builds
+
+`ClipboardManager/THIRD-PARTY-NOTICES.txt` is copied to build and publish output by `ClipboardManager.csproj`. It identifies the distributed libraries, selected icon sources, SQLite, and the separately downloaded Qwen model.
+
+Before every Store release:
+
+1. Compare `PackageReference` entries with this table.
+2. Inspect `obj/project.assets.json` for changed transitive dependencies.
+3. Confirm every license remains compatible with commercial distribution.
+4. Keep Qwen marked as optional and separately downloaded unless packaging terms are reviewed again.
+5. Rebuild and confirm `THIRD-PARTY-NOTICES.txt` is present in the packaged output.
