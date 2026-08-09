@@ -271,9 +271,13 @@ The application package does not contain an AI model. Open AI Assist and choose 
 - approximately 2.5 GB;
 - Apache 2.0 license.
 
-The model downloads from the official Qwen repository on Hugging Face. Interrupted downloads can resume. The app verifies the completed file with SHA-256 before it can be used.
+The model downloads from the official Qwen repository on Hugging Face. Before downloading, you can choose a storage folder. Unicode and Cyrillic paths are supported. Changing the folder after installation moves the verified model and its related download files without changing clipboard or AI history.
 
-The model can be removed from AI Assist at any time.
+Interrupted downloads can resume. The app accepts only HTTPS model releases from a signed manifest, enforces the signed exact file-size limit, and verifies the completed file with SHA-256 before it can be used. A failed or interrupted replacement never removes the currently verified model.
+
+Use **Check for updates** in AI Assist to look for a newer signed model release. Model updates can be published independently from Microsoft Store application updates, but the app enforces each release's minimum compatible app version. The release details are shown first and the model is downloaded only after confirmation.
+
+The model can be removed from AI Assist at any time. Removing it deletes local model and partial-download files but does not delete clipboard history, saved prompts, or AI response history.
 
 ### AI Actions
 

@@ -1,3 +1,32 @@
+# ClipVault Studio 2.1.1
+
+ClipVault Studio 2.1.1 improves the reliability and control of optional local
+AI model installation and updates.
+
+## Local AI Model Management
+
+- Added a user-selectable model storage folder, including full support for
+  Unicode and Cyrillic paths.
+- Added a manual model update check with release details and explicit user
+  confirmation before any replacement is downloaded.
+- Kept model delivery independent from Microsoft Store application releases
+  while enforcing signed-manifest and minimum-app-version compatibility.
+- Hardened resumable downloads with signed exact-size limits, HTTPS validation,
+  SHA-256 verification, and safe fallback when a server cannot resume a range.
+- Preserved the currently verified model until a replacement finishes download
+  and validation successfully.
+- Added local diagnostics reporting for model discovery, download, path, and
+  runtime failures without uploading logs automatically.
+
+## Store And Packaging
+
+- Application version: `2.1.1`.
+- Microsoft Store package version: `2.1.1.0`.
+- The optional Qwen model remains outside the Store package.
+- Microsoft Store Monthly and Lifetime purchase identifiers remain unchanged.
+
+---
+
 # ClipVault Studio 2.1.0
 
 ClipVault Studio 2.1 turns clipboard history into a faster keyboard-first workflow and adds a clearer product About experience.

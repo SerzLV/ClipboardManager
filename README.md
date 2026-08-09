@@ -13,7 +13,7 @@ This public repository is the official **documentation and support portal** for
 ClipVault Studio. Application source code and build infrastructure are not
 published here.
 
-Current version: **2.1.0**.
+Current version: **2.1.1**.
 
 ## Editions
 
@@ -85,7 +85,10 @@ Network access is limited to user-visible features such as:
 
 The optional AI model is not included in the Store package. AI inference runs
 locally on the CPU through LLamaSharp. Saved prompts and optional AI response
-history are encrypted on the device.
+history are encrypted on the device. The model can be installed in a
+user-selected folder, including paths containing Unicode or Cyrillic
+characters. Model updates are checked manually and are downloaded only after
+the user reviews and confirms the signed release.
 
 Read the complete [Privacy Notice](PRIVACY.md).
 

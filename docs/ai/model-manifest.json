@@ -5,12 +5,12 @@
   "displayName": "Qwen3 4B",
   "fileName": "Qwen3-4B-Q4_K_M.gguf",
   "downloadUrl": "https://huggingface.co/Qwen/Qwen3-4B-GGUF/resolve/main/Qwen3-4B-Q4_K_M.gguf?download=true",
-  "fileSizeBytes": 2500000000,
+  "fileSizeBytes": 2497280256,
   "sha256": "7485FE6F11AF29433BC51CAB58009521F205840F5B4AE3A32FA7F92E8534FDF5",
   "quantization": "Q4_K_M",
   "licenseName": "Apache 2.0",
   "licenseUrl": "https://huggingface.co/Qwen/Qwen3-4B-GGUF/blob/main/LICENSE",
   "minimumAppVersion": "2.1.0",
   "releaseNotes": "Initial signed Qwen3 4B local AI model release.",
-  "signature": "YIV0vtJN/G7pimsTOkRrQY7UZ5OCgl1DoepWwEQMlHdlW5ewLPSF70sijlKgv3d00kVrE5zOXAaDW3AICHs/dg=="
+  "signature": "LD6xtHscipMES1SWQGgrpzhtn3/0pEv03Zio7t/ufPbpWhq9DdqLgHrZhhZ5JCmyHzZ0Miv9\u002B\u002BTaRCRhbi6GcQ=="
 }
