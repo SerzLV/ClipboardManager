@@ -1,3 +1,41 @@
+# ClipVault Studio 2.1.2
+
+ClipVault Studio 2.1.2 refines everyday navigation, document search, and background control with a new native-looking tray experience.
+
+## Premium Tray Controls
+
+- Replaced the system tray context menu with a themed ClipVault Studio menu that follows the active light or dark appearance.
+- Added direct actions for opening the application, launching Quick Paste, opening Settings, and exiting cleanly.
+- Added a runtime pause/resume control for clipboard monitoring with an immediate status update and reliable worker restart.
+- Preserved the previously focused application when Quick Paste is opened from the tray.
+- Added localized English and Russian labels, descriptions, status text, and the active Quick Paste hotkey.
+
+## Workbench Search
+
+- Added `Match case` and `Whole word` options to in-document search.
+- Added Visual Studio-style `Ctrl+F` behavior that uses the current single-line editor selection as the search query.
+- Kept the search field, caret, result count, and navigation controls stable while matches refresh.
+- Refined the search surface, icon-only workbench controls, tooltips, and keyboard accessibility.
+
+## Interface Polish
+
+- Refined sidebar navigation, selection indicators, spacing, cards, inspector surfaces, and light/dark palette contrast.
+- Restored clear visual separation between history items while keeping rounded clipping and compact density.
+- Kept search and filter controls at stable dimensions so the workspace no longer shifts when state changes.
+
+## Reliability And Verification
+
+- Added focused tests for tray actions, localization refresh, monitoring state, and tray-window initialization.
+- Expanded document-search coverage for casing, whole words, selected text, cancellation, and large result sets.
+
+## Store And Packaging
+
+- Application version: `2.1.2`.
+- Microsoft Store package version: `2.1.2.0`.
+- Microsoft Store Monthly and Lifetime purchase identifiers remain unchanged.
+
+---
+
 # ClipVault Studio 2.1.1
 
 ClipVault Studio 2.1.1 improves the reliability and control of optional local
