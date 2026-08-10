@@ -1,3 +1,22 @@
+# ClipVault Studio 2.1.3
+
+ClipVault Studio 2.1.3 restores predictable text workbench layouts after resizing the split view.
+
+## Text Workbench Reliability
+
+- Restored a single full-width editor for plain text and other formats without a structured preview.
+- Restored a single full-width Markdown preview when Preview mode is selected.
+- Kept Editor, Preview, and Split modes independent after moving the pane divider.
+- Preserved the user's Split pane ratio while switching between workbench modes.
+
+## Store And Packaging
+
+- Application version: `2.1.3`.
+- Microsoft Store package version: `2.1.3.0`.
+- Microsoft Store Monthly and Lifetime purchase identifiers remain unchanged.
+
+---
+
 # ClipVault Studio 2.1.2
 
 ClipVault Studio 2.1.2 refines everyday navigation, document search, and background control with a new native-looking tray experience.
