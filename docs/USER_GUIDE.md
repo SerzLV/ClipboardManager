@@ -1,6 +1,6 @@
 # ClipVault Studio User Guide
 
-This guide describes the current Free, trial, and Pro workflows in ClipVault Studio 2.1.0.
+This guide describes the current Free, trial, and Pro workflows in ClipVault Studio 2.1.4.
 
 ## First Launch
 

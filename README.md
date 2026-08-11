@@ -13,7 +13,7 @@ This public repository is the official **documentation and support portal** for
 ClipVault Studio. Application source code and build infrastructure are not
 published here.
 
-Current version: **2.1.1**.
+Current version: **2.1.4** (Microsoft Store package `2.1.4.0`).
 
 ## Editions
 

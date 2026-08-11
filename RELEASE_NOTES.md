@@ -1,3 +1,28 @@
+# ClipVault Studio 2.1.4
+
+ClipVault Studio 2.1.4 keeps Favorites complete and predictable across large histories, collections, and smart text views.
+
+## Favorites Reliability
+
+- Fixed Favorites showing only the subset that matched the previously selected smart text category.
+- Kept the Favorites count stable while switching between collections and All history.
+- Kept every pinned item available during incremental history loading, including histories larger than the configured batch size.
+- Preserved search filtering inside Favorites without letting collection navigation change the global Favorites badge.
+
+## Reliability And Verification
+
+- Added a regression scenario with 13 pinned text items and a five-record history batch.
+- Covered direct navigation from a collection to Favorites, return to All history, and a retained Styles filter.
+- Verified the complete automated test suite and the warning-free Release build.
+
+## Store And Packaging
+
+- Application version: `2.1.4`.
+- Microsoft Store package version: `2.1.4.0`.
+- Microsoft Store Monthly and Lifetime purchase identifiers remain unchanged.
+
+---
+
 # ClipVault Studio 2.1.3
 
 ClipVault Studio 2.1.3 restores predictable text workbench layouts after resizing the split view.
