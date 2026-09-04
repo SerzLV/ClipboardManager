@@ -6,6 +6,8 @@ The author makes no guarantee that the application will be error-free, uninterru
 
 Clipboard history can contain sensitive information. The user is responsible for deciding what to capture, store, reveal, copy, export, import, share, delete, or retain.
 
+The user is responsible for remembering Secret Vault and protected-backup passwords and for securely storing the current Recovery Kit. ClipVault Studio cannot recover a forgotten backup password. A Recovery Kit is not a backup of the database, works only with matching local vault state, and should be treated as sensitive access material. Replacing a Recovery Kit invalidates the previous file.
+
 Quick Paste attempts to return focus and send the standard paste shortcut to the application that was active before the palette opened. Windows security boundaries, elevated applications, focus changes, or target application behavior can prevent or redirect input. Review the active destination before confirming sensitive content; use copy-only mode when automatic paste is inappropriate.
 
 ClipVault Studio is not a replacement for:
@@ -24,6 +26,6 @@ Local AI Assist can generate inaccurate, incomplete, biased, insecure, or otherw
 
 The seven-day Pro trial and permanent Pro purchase are subject to the application's license checks and Microsoft Store availability. Prices, taxes, regional availability, refunds, and payment processing are controlled by Microsoft Store.
 
-To the maximum extent permitted by applicable law, the author is not liable for direct, indirect, incidental, consequential, special, exemplary, or other damages or losses arising from installation, use, inability to use, misuse, data storage, data loss, export, import, AI output, third-party websites, licensing, purchase, uninstallation, or distribution of this software.
+To the maximum extent permitted by applicable law, the author is not liable for direct, indirect, incidental, consequential, special, exemplary, or other damages or losses arising from installation, use, inability to use, misuse, data storage, data loss, forgotten passwords, lost or exposed Recovery Kits, unavailable or corrupted backups, export, import, AI output, third-party websites, licensing, purchase, uninstallation, or distribution of this software.
 
 Use ClipVault Studio at your own risk.

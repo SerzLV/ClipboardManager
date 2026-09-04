@@ -61,6 +61,16 @@ Application preferences are stored under:
 %APPDATA%\ClipboardManager\settings.json
 ```
 
+### Secret Vault Metadata
+
+When the user configures a Secret Vault, versioned key-wrapping and recovery metadata is stored in:
+
+```text
+%LOCALAPPDATA%\ClipboardManager\Secrets\vault-state.json
+```
+
+This file does not contain the master password or plaintext Secret values. User-selected Recovery Kits and backup files are stored only at locations chosen by the user.
+
 ### Local Diagnostics
 
 ClipVault Studio records startup, shutdown, and unexpected application failures in:
@@ -117,9 +127,13 @@ This state is used only to determine trial availability, integrity, start time, 
 
 ## Protected Secrets
 
-Secrets are stored in the main local database, but secret values are encrypted with Windows DPAPI using `DataProtectionScope.CurrentUser`.
+Secrets are stored in the main local database. Before a Secret Vault is configured, values are encrypted with Windows DPAPI using `DataProtectionScope.CurrentUser` and access uses Windows verification.
 
-Secret names remain searchable. Secret values remain masked unless the user explicitly requests reveal or copy and completes Windows verification.
+When the user configures a vault, ClipVault Studio creates a random encryption key and migrates existing Secret values to authenticated vault encryption. The master password protects access to that key and is not stored. The decrypted key is retained in process memory for 30 seconds after a successful unlock and is then discarded.
+
+Secret names remain searchable. Secret values remain masked unless the user explicitly requests reveal or copy and completes the applicable verification. Locking or expiry hides revealed values and clears temporary trusted-copy access.
+
+The Recovery Kit can reset the vault master password only with the matching local vault state. It does not contain Secret records, cannot reveal the old password, and cannot reconstruct deleted local state by itself. Creating a replacement kit invalidates the previous kit. Users are responsible for keeping the current kit private and separate from the device.
 
 The app can temporarily place a decrypted secret on the Windows clipboard after a verified copy action. When automatic clearing is enabled, the app attempts to clear that value after 45 seconds if the clipboard still contains the same secret.
 
@@ -150,7 +164,7 @@ Microsoft Store can process normal product, purchase, license, and account infor
 
 ## Backup And Import
 
-`.clipboard.json` exports can include:
+Standard `.clipboard.json` exports can include:
 
 - file names and paths;
 - text snippets;
@@ -159,7 +173,7 @@ Microsoft Store can process normal product, purchase, license, and account infor
 - favorite state;
 - export timestamp and format version.
 
-Exports intentionally exclude:
+Standard JSON exports intentionally exclude:
 
 - secrets;
 - collections and collection membership;
@@ -169,7 +183,13 @@ Exports intentionally exclude:
 - trial state;
 - Microsoft Store entitlement or payment data.
 
-The user chooses where an export file is stored and is responsible for protecting it. Export files are readable JSON and are not encrypted by ClipVault Studio.
+Standard export files are readable JSON and are not encrypted by ClipVault Studio.
+
+The user can instead create a password-protected `.cvbackup`. This format encrypts and authenticates the complete backup and can optionally include Secret names and values after the vault is unlocked. Collections, AI data, settings, model files, trial state, and Store entitlement data remain excluded.
+
+The `.cvbackup` password is separate from the Secret Vault master password and Recovery Kit. ClipVault Studio does not store, transmit, or recover backup passwords. A wrong password or modified protected backup is rejected before records are imported.
+
+The user chooses where export and Recovery Kit files are stored and is responsible for protecting, retaining, and securely deleting them.
 
 ## User Controls
 
@@ -178,10 +198,12 @@ The user can:
 - delete individual clipboard records;
 - clear regular clipboard history;
 - delete individual secrets;
+- configure, lock, unlock, or change the Secret Vault master password;
+- create a replacement Recovery Kit or use the current kit to reset the vault password;
 - delete collections without deleting their underlying history items;
 - clear cached link preview images;
 - disable link refresh;
-- export or import regular history;
+- export or import regular history through readable JSON or a protected backup;
 - delete saved AI prompts;
 - delete individual AI history entries;
 - clear unpinned AI history;

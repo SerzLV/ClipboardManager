@@ -13,20 +13,20 @@ This public repository is the official **documentation and support portal** for
 ClipVault Studio. Application source code and build infrastructure are not
 published here.
 
-Current version: **2.1.4** (Microsoft Store package `2.1.4.0`).
+Current version: **2.1.5** (Microsoft Store package `2.1.5.0`).
 
 ## Editions
 
 ### Free
 
 - Clipboard history for files, text, links, and images.
-- Favorites and protected secrets.
-- Complete-history search, sorting, and incremental loading.
+- Favorites, a protected Secret Vault, and Recovery Kit support.
+- Complete-history search, sorting, incremental loading, and multi-select cleanup.
 - Quick Paste palette for recent and searched text, links, files, and images.
 - Link cards and local preview caching.
 - Image preview, descriptions, search, copy, and save.
-- Tray mode, Windows startup, configurable app and Quick Paste hotkeys, and
-  JSON backup/import.
+- Tray mode, Windows startup, configurable app and Quick Paste hotkeys,
+  readable JSON backup, and password-protected backup/import.
 - Light and dark themes with English and Russian localization.
 
 ## Quick Paste
@@ -44,6 +44,23 @@ Protected secrets never appear in Quick Paste. Before pasting, ClipVault Studio
 revalidates the destination window and owning process. If Windows blocks focus
 restoration or synthetic input, the item remains copied and the app reports a
 copy-only fallback instead of pasting into an unrelated window.
+
+## Protected Secrets And Backups
+
+Before a Secret Vault is configured, Secret values are protected for the
+current Windows user and access uses Windows verification. The optional vault
+adds a master password, a Recovery Kit, explicit lock/unlock controls, and
+automatic key expiry after 30 seconds. The master password is never stored.
+
+Standard `.clipboard.json` exports remain readable and always exclude Secrets.
+A password-protected `.cvbackup` encrypts the complete backup and can optionally
+include Secrets after the vault is unlocked. Its password is independent from
+the vault master password and cannot be recovered by ClipVault Studio.
+
+The current `.cvrecovery` file can reset a forgotten vault password only while
+the matching local vault state remains available. It is sensitive access
+material, not a database backup. Creating a replacement Recovery Kit
+invalidates the previous one.
 
 ### Pro
 
@@ -136,6 +153,7 @@ Depending on the features used, ClipVault Studio can create data in:
 
 ```text
 %LOCALAPPDATA%\ClipboardManager\clipboardDatabase.sqlite
+%LOCALAPPDATA%\ClipboardManager\Secrets\vault-state.json
 %LOCALAPPDATA%\ClipboardManager\Cache\LinkPreviews
 %LOCALAPPDATA%\ClipboardManager\AI\ai-assistant.sqlite
 %LOCALAPPDATA%\ClipboardManager\Models
@@ -144,13 +162,15 @@ Depending on the features used, ClipVault Studio can create data in:
 %APPDATA%\ClipboardManager\settings.json
 ```
 
-The AI database and Models folder are created only when the related Pro
-features are used. Diagnostic logs are bounded and are never uploaded
-automatically.
+The Secret Vault metadata file is created only after vault setup and does not
+contain the master password or plaintext Secret values. The AI database and
+Models folder are created only when the related Pro features are used.
+Diagnostic logs are bounded and are never uploaded automatically.
 
-Backup exports contain regular clipboard history. They do not contain secrets,
-collections, AI prompts or history, settings, model files, trial state, or
-Microsoft Store entitlement data.
+Standard JSON exports contain regular clipboard history and never contain
+Secrets. Protected `.cvbackup` files contain the same history and can optionally
+include Secrets. Neither format contains collections, AI prompts or history,
+settings, model files, trial state, or Microsoft Store entitlement data.
 
 ## Download
 
@@ -168,5 +188,6 @@ packages, or source archives.
 - Issues: [SerzLV/ClipboardManager issues](https://github.com/SerzLV/ClipboardManager/issues)
 - Reporting guide: [SUPPORT.md](SUPPORT.md)
 
-Do not include clipboard contents, passwords, tokens, private documents,
-database files, AI history, or other sensitive data in public issues.
+Do not include clipboard contents, passwords, tokens, Recovery Kits, protected
+backups, private documents, database files, AI history, or other sensitive data
+in public issues.

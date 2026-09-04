@@ -1,3 +1,51 @@
+# ClipVault Studio 2.1.5
+
+ClipVault Studio 2.1.5 adds stronger optional protection for Secrets, encrypted full backups, and a faster way to clean up history in batches.
+
+## Secret Vault
+
+- Added an optional master-password vault for protected Secrets while preserving current-user Windows protection before setup.
+- Added transactional migration of existing Secrets to authenticated vault encryption.
+- Added explicit lock, unlock, password change, and automatic 30-second key expiry.
+- Added a Recovery Kit that can reset a forgotten master password while matching local vault state is available.
+- Made replacement Recovery Kits invalidate every earlier kit.
+
+## Protected Backup And Restore
+
+- Kept readable `.clipboard.json` exports compatible and guaranteed to exclude Secrets.
+- Added password-protected `.cvbackup` export with optional Secrets and authentication of the complete backup.
+- Added protected import with wrong-password and tamper rejection before any records are merged.
+- Kept backup passwords independent from the vault master password and Recovery Kit.
+
+## Multi-Select History Cleanup
+
+- Added a focused selection mode for history, Favorites, content types, and collections.
+- Added **Select shown** for the currently visible filtered items while preserving control over individual selections.
+- Added one clear confirmation before deleting all selected records together.
+- Deleted mixed item types and their collection memberships in one database transaction.
+- Kept Favorites, section counts, pagination, and collection counts synchronized after deletion.
+
+## Interface Polish
+
+- Matched password fields, backup choices, checkboxes, and dialog actions to the ClipVault visual system.
+- Fixed Cancel in backup options so it closes the workflow without opening a save-file dialog.
+- Added English and Russian labels, confirmations, status messages, and Guide coverage for the new workflows.
+
+## Documentation And Verification
+
+- Added English and Russian in-app guidance for vault setup, recovery, protected backup, and multi-select deletion.
+- Updated privacy, support, architecture, disclaimer, and public documentation.
+- Added regression coverage for migration, locking, password changes, recovery, Recovery Kit replacement, persistence, wrong passwords, and modified backup data.
+- Verified Free and Pro builds and the complete automated test suite before packaging.
+
+## Store And Packaging
+
+- Application version: `2.1.5`.
+- Microsoft Store package version: `2.1.5.0`.
+- Microsoft Store Monthly and Lifetime purchase identifiers remain unchanged.
+
+---
+
 # ClipVault Studio 2.1.4
 
 ClipVault Studio 2.1.4 keeps Favorites complete and predictable across large histories, collections, and smart text views.

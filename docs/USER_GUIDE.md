@@ -1,6 +1,6 @@
 # ClipVault Studio User Guide
 
-This guide describes the current Free, trial, and Pro workflows in ClipVault Studio 2.1.4.
+This guide describes the current Free, trial, and Pro workflows in ClipVault Studio 2.1.5.
 
 ## First Launch
 
@@ -45,6 +45,7 @@ Each item exposes only the actions that apply to its type. Common actions includ
 - open or preview;
 - edit text or image description;
 - add to a collection in Pro;
+- select multiple shown items and delete them together after one confirmation;
 - delete.
 
 The default order is newest first. Use the compact sort control beside Search to switch between newest-first and oldest-first ordering.
@@ -83,18 +84,34 @@ Deleting the original item removes it from Favorites. Favorite state is included
 
 ## Protected Secrets
 
-Any text item can be saved as a named secret. Secret values are encrypted with Windows DPAPI for the current Windows user and remain masked in the interface.
+Any text item can be saved as a named Secret. Values remain masked in the interface and are excluded from Quick Paste.
 
-When revealing or copying a secret:
+Before a Secret Vault is configured, values are protected with Windows DPAPI for the current Windows user. Revealing or copying uses Windows Hello/PIN when available and falls back to a Windows password credential prompt.
 
-1. ClipVault Studio requests Windows verification.
-2. Windows Hello or PIN is used when available.
-3. If that flow is unavailable, the app falls back to a Windows password credential prompt.
-4. A successful secret copy allows repeat copies of that same secret for 30 seconds.
+### Configure The Secret Vault
 
-Revealed values hide again after 30 seconds. When automatic clearing is enabled, copied secret text is removed from the Windows clipboard after 45 seconds if the clipboard still contains that exact secret.
+Open **Settings > Privacy** and choose **Configure vault**. Create a master password of at least 12 characters and choose where to save the generated `.cvrecovery` Recovery Kit.
 
-Secrets are not included in backup exports. Delete secrets individually when they are no longer needed.
+Configuration creates a random vault key, migrates existing DPAPI-protected Secrets, and encrypts each value for the vault. The master password is used to unlock the vault key and is never stored.
+
+After a successful unlock:
+
+- the vault key remains in memory for 30 seconds;
+- revealed values hide again when the vault locks or expires;
+- trusted repeat-copy access is cleared when the vault locks;
+- copied Secret text is removed from the Windows clipboard after 45 seconds when automatic clearing is enabled and the clipboard still contains that exact value.
+
+You can lock the vault immediately or change its master password from **Settings > Privacy**.
+
+### Recovery Kit
+
+The current Recovery Kit can reset a forgotten master password only while the matching local vault state is still available. Recovery sets a new password; it cannot reveal the old password.
+
+- Store the `.cvrecovery` file separately from the computer and from protected backups.
+- Treat it like a bearer credential: anyone with the current kit and matching local vault state can reset the vault password.
+- Creating a replacement Recovery Kit invalidates the previous kit.
+- The kit alone is not a backup of Secret records and cannot recreate a deleted database or missing vault state.
+- If both the master password and current Recovery Kit are lost, local Secrets cannot be recovered unless they also exist in a separately protected `.cvbackup`.
 
 ClipVault Studio provides convenient local secret storage, but it is not a replacement for a dedicated password manager.
 
@@ -345,6 +362,8 @@ Current settings include:
 - start with Windows;
 - enable and configure the global hotkey;
 - enable and configure the separate Quick Paste hotkey;
+- configure, unlock, lock, or change the Secret Vault master password;
+- create a replacement Recovery Kit or recover access with the current kit;
 - automatically clear copied secrets;
 - history load batch size;
 - link refresh interval;
@@ -361,7 +380,11 @@ The default global hotkey configuration can be changed to avoid conflicts with o
 
 ## Backup And Restore
 
-Export creates a `.clipboard.json` file containing:
+Export offers two formats.
+
+### Standard JSON
+
+The readable `.clipboard.json` format contains:
 
 - export version and timestamp;
 - file paths and display names;
@@ -370,7 +393,7 @@ Export creates a `.clipboard.json` file containing:
 - URLs and cached metadata;
 - favorite state.
 
-The export intentionally excludes:
+Standard JSON always excludes:
 
 - secrets;
 - collections and collection membership;
@@ -381,10 +404,21 @@ The export intentionally excludes:
 
 Import merges regular data into the current database and avoids obvious duplicates. File entries remain references to their original paths.
 
+### Protected Backup
+
+The `.cvbackup` format encrypts and authenticates the complete backup with a separate password of at least 12 characters. It contains the same regular history as Standard JSON and can optionally include named Secrets after the Secret Vault is unlocked.
+
+The protected-backup password is independent from the Secret Vault master password and Recovery Kit. ClipVault Studio does not store or recover it. A wrong password or modified backup is rejected before anything is imported.
+
+Import merges regular history and avoids obvious duplicates. Imported Secrets are encrypted with the destination vault key; exact duplicate name/value pairs are skipped, and a pinned duplicate upgrades the existing pin state. If the destination has no configured vault, the app asks you to create one before importing Secrets.
+
+Neither format includes collections, collection membership, AI saved prompts/history, settings, model files, trial state, or Store entitlement data.
+
 ## Data Locations
 
 ```text
 %LOCALAPPDATA%\ClipboardManager\clipboardDatabase.sqlite
+%LOCALAPPDATA%\ClipboardManager\Secrets\vault-state.json
 %LOCALAPPDATA%\ClipboardManager\Cache\LinkPreviews
 %LOCALAPPDATA%\ClipboardManager\AI\ai-assistant.sqlite
 %LOCALAPPDATA%\ClipboardManager\Models
@@ -393,6 +427,8 @@ Import merges regular data into the current database and avoids obvious duplicat
 ```
 
 The `CLIPVAULT_DATA_DIR` environment variable can redirect Local and Roaming application data roots for development and automated testing.
+
+Recovery Kits, `.cvbackup` files, and `.clipboard.json` files are stored only in locations chosen by the user.
 
 ## Troubleshooting
 
@@ -416,6 +452,20 @@ The current log is limited to 512 KiB and rotates once to `crash.previous.log`, 
 - Check whether another application owns or repeatedly rewrites the clipboard.
 - Retry the copy after the Windows clipboard is available.
 - Report persistent listener errors with the application and Windows version.
+
+### The Secret Vault Does Not Unlock
+
+- Confirm that the vault is configured and enter the master password created for this vault, not the password used for a `.cvbackup`.
+- If the password is forgotten, use **Settings > Privacy > Recover access** with the current matching `.cvrecovery` file and create a new master password.
+- A Recovery Kit created before the most recent replacement is intentionally invalid.
+- If `vault-state.json` was deleted, the Recovery Kit alone cannot reconstruct it. Restore Secrets from an independently protected `.cvbackup` when available.
+
+### A Protected Backup Does Not Import
+
+- Confirm the file has the `.cvbackup` extension and enter its separate backup password.
+- A backup password cannot be reset with the Secret Vault Recovery Kit.
+- Modified, truncated, or corrupted protected backups are rejected before import.
+- Keep the original file unchanged while troubleshooting and never send a real protected backup or Recovery Kit through a public issue.
 
 ### Build Output Is Locked
 

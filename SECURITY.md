@@ -19,6 +19,10 @@ Do not include real passwords, access tokens, private documents, clipboard
 databases, AI history, payment information, or other personal data. Use
 synthetic examples and redact screenshots and logs before sending them.
 
+Never send a real Secret Vault Recovery Kit, protected `.cvbackup`, master
+password, backup password, or Secret value. These files and values can grant
+access to sensitive local data even when they look like diagnostic material.
+
 Please do not open a public GitHub issue for an unpatched vulnerability.
 
 ## Scope
@@ -30,6 +34,8 @@ Relevant reports include:
 - Quick Paste targeting or focus-restoration behavior that could paste into an
   application other than the verified destination;
 - unsafe handling of imported backups, local files, links, or model files;
+- bypass, downgrade, or unintended disclosure in Secret Vault, Recovery Kit,
+  protected-backup, password, or automatic-lock handling;
 - vulnerabilities in local storage, diagnostics, or optional AI features.
 
 Microsoft Store account, billing, and payment issues should be reported to
