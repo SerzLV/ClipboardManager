@@ -1,6 +1,6 @@
 # ClipVault Studio User Guide
 
-This guide describes the current Free, trial, and Pro workflows in ClipVault Studio 2.1.5.
+This guide describes the current Free, trial, and Pro workflows in ClipVault Studio 2.1.6.
 
 ## First Launch
 
@@ -378,6 +378,8 @@ History sort order is controlled from the compact sort button beside Search and 
 
 The default global hotkey configuration can be changed to avoid conflicts with other applications.
 
+Opening the main window from the tray or its show/hide hotkey brings it to the foreground, including when it is hidden, minimized, or covered by another application. It does not remain always on top, so you can switch to another application normally.
+
 ## Backup And Restore
 
 Export offers two formats.
@@ -391,18 +393,20 @@ The readable `.clipboard.json` format contains:
 - text snippets;
 - image bytes, names, and descriptions;
 - URLs and cached metadata;
-- favorite state.
+- favorite state;
+- collection names, colours, and membership.
 
 Standard JSON always excludes:
 
 - secrets;
-- collections and collection membership;
 - AI saved prompts and history;
 - application settings;
 - downloaded AI model;
 - trial state and Store license data.
 
-Import merges regular data into the current database and avoids obvious duplicates. File entries remain references to their original paths.
+Import merges regular data into the current database and avoids obvious duplicates. File entries remain references to their original paths. If a backup contains records previously deleted on this device, the app asks whether to restore them or leave them deleted. Collection membership follows the current text content, including independently edited text.
+
+The confirmation follows the current application theme. **Restore** brings deleted history records back; **Skip deleted records** leaves them deleted and imports the rest. Closing the confirmation with its cross, `Escape`, or `Alt+F4` cancels the entire import without adding history, Secrets, or collections. These choices also apply when importing a protected backup.
 
 ### Protected Backup
 
@@ -412,7 +416,7 @@ The protected-backup password is independent from the Secret Vault master passwo
 
 Import merges regular history and avoids obvious duplicates. Imported Secrets are encrypted with the destination vault key; exact duplicate name/value pairs are skipped, and a pinned duplicate upgrades the existing pin state. If the destination has no configured vault, the app asks you to create one before importing Secrets.
 
-Neither format includes collections, collection membership, AI saved prompts/history, settings, model files, trial state, or Store entitlement data.
+Both formats include collections and their membership. Protected import restores membership after included Secrets have been saved. Neither format includes AI saved prompts/history, settings, model files, trial state, or Store entitlement data.
 
 ## Data Locations
 

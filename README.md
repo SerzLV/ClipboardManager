@@ -13,7 +13,13 @@ This public repository is the official **documentation and support portal** for
 ClipVault Studio. Application source code and build infrastructure are not
 published here.
 
-Current version: **2.1.5** (Microsoft Store package `2.1.5.0`).
+Current release: **2.1.6** (Microsoft Store package `2.1.6.0`). Store availability depends on update rollout.
+
+## What's New In 2.1.6
+
+- Backups preserve collections and their membership, including edited text and Secrets in protected backups.
+- A themed restore confirmation lets you restore previously deleted history or skip it. Closing the confirmation cancels the entire import.
+- Opening from the tray or global hotkey brings the main window to the foreground without keeping it always on top.
 
 ## Editions
 
@@ -169,7 +175,7 @@ Diagnostic logs are bounded and are never uploaded automatically.
 
 Standard JSON exports contain regular clipboard history and never contain
 Secrets. Protected `.cvbackup` files contain the same history and can optionally
-include Secrets. Neither format contains collections, AI prompts or history,
+include Secrets. Both formats preserve collections and their membership. Neither format contains AI prompts or history,
 settings, model files, trial state, or Microsoft Store entitlement data.
 
 ## Download

@@ -1,6 +1,6 @@
 # ClipVault Studio Privacy Notice
 
-Effective date: July 16, 2026
+Effective date: September 6, 2026
 
 Publisher: Serz Studio
 
@@ -171,12 +171,12 @@ Standard `.clipboard.json` exports can include:
 - image bytes, names, and descriptions;
 - URLs and cached metadata;
 - favorite state;
+- collection names, colours, and membership;
 - export timestamp and format version.
 
 Standard JSON exports intentionally exclude:
 
 - secrets;
-- collections and collection membership;
 - saved AI prompts and AI history;
 - application settings;
 - downloaded AI model files;
@@ -185,9 +185,11 @@ Standard JSON exports intentionally exclude:
 
 Standard export files are readable JSON and are not encrypted by ClipVault Studio.
 
-The user can instead create a password-protected `.cvbackup`. This format encrypts and authenticates the complete backup and can optionally include Secret names and values after the vault is unlocked. Collections, AI data, settings, model files, trial state, and Store entitlement data remain excluded.
+The user can instead create a password-protected `.cvbackup`. This format encrypts and authenticates the complete backup and can optionally include Secret names and values after the vault is unlocked. It carries the same collections as a standard export. AI data, settings, model files, trial state, and Store entitlement data remain excluded.
 
 The `.cvbackup` password is separate from the Secret Vault master password and Recovery Kit. ClipVault Studio does not store, transmit, or recover backup passwords. A wrong password or modified protected backup is rejected before records are imported.
+
+Importing a backup that still contains regular history records deleted on this computer asks whether to restore them. **Skip deleted records** keeps them deleted and imports the rest. Closing this confirmation with its cross, Escape, or Alt+F4 cancels the complete import, including Secrets and collections. If the user continues, the restore/skip choice covers regular history only; included Secrets are imported from a protected backup. Importing an older protected backup can therefore bring back a Secret that was intentionally deleted or whose value was revoked.
 
 The user chooses where export and Recovery Kit files are stored and is responsible for protecting, retaining, and securely deleting them.
 

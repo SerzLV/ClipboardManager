@@ -1,3 +1,38 @@
+# ClipVault Studio 2.1.6
+
+ClipVault Studio 2.1.6 preserves collections in backups and improves restoration of edited and previously deleted history.
+
+## Backup And Restore
+
+- Included collection names, colours, and membership in standard and password-protected backups.
+- Added persistent record identifiers and capture timestamps to the version 2 export format while retaining support for version 1 files.
+- Filled identifiers for existing history before export so upgraded databases retain collection membership.
+- Added a choice to restore previously deleted records or leave them deleted during import.
+- Matched text collection membership against current content, including text edited independently on different devices.
+- Restored collection membership after importing Secrets from protected backups.
+- Preserved distinct edited contents that share an original record identifier.
+
+## Window And Dialog Fixes
+
+- Matched the restore-deleted confirmation to the application's light and dark themes.
+- Made the close button, Escape, and Alt+F4 cancel the entire import, including Secrets and collections. **Skip deleted records** continues importing the rest.
+- Fixed foreground activation from the global hotkey and tray without leaving the main window always on top.
+- Preserved focus after restoring hidden, minimized, and covered windows.
+
+## Documentation And Verification
+
+- Updated English and Russian in-app guidance and backup privacy documentation.
+- Added regression coverage for edited text membership, protected backup restoration, repeated imports, and deletion choices.
+- Verified import cancellation for both backup formats and real global-hotkey activation, including the native always-on-top flag.
+
+## Store And Packaging
+
+- Application version: `2.1.6`.
+- Microsoft Store package version: `2.1.6.0`.
+- The Store package remains the Free base application with unchanged Monthly and Lifetime purchase identifiers.
+
+---
+
 # ClipVault Studio 2.1.5
 
 ClipVault Studio 2.1.5 adds stronger optional protection for Secrets, encrypted full backups, and a faster way to clean up history in batches.
