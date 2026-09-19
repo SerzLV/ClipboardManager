@@ -1,6 +1,6 @@
 # Open-Source Components
 
-ClipVault Studio 2.1.6 is built with permissively licensed open-source software. This inventory is generated from the production project references and the resolved NuGet dependency graph used by the Store build.
+ClipVault Studio 2.2.0 is built with permissively licensed open-source software. This inventory is generated from the production project references and the resolved NuGet dependency graph used by the Store build.
 
 The application itself is licensed under MIT. Third-party projects and the optional AI model keep their own licenses. This page is a practical inventory, not legal advice. Redistributable notices are included with every build in `THIRD-PARTY-NOTICES.txt`.
 

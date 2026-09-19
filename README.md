@@ -13,13 +13,14 @@ This public repository is the official **documentation and support portal** for
 ClipVault Studio. Application source code and build infrastructure are not
 published here.
 
-Current release: **2.1.6** (Microsoft Store package `2.1.6.0`). Store availability depends on update rollout.
+Current release: **2.2.0** (Microsoft Store package `2.2.0.0`). Store availability depends on update rollout.
 
-## What's New In 2.1.6
+## What's New In 2.2.0
 
-- Backups preserve collections and their membership, including edited text and Secrets in protected backups.
-- A themed restore confirmation lets you restore previously deleted history or skip it. Closing the confirmation cancels the entire import.
-- Opening from the tray or global hotkey brings the main window to the foreground without keeping it always on top.
+- Code is highlighted by language, including fenced blocks inside a Markdown document and inside the rendered Markdown preview.
+- PowerShell and shell scripts are recognized as formats of their own, with matching highlighting and file extensions.
+- A format picker in the text workbench corrects a detection that guessed wrong, and the correction is remembered for a stored history entry.
+- The exact-format filter lists every supported format and shows how many stored entries carry each one.
 
 ## Editions
 
@@ -77,9 +78,9 @@ one-time Lifetime purchase.
 Pro adds:
 
 - Collections with mixed item types, context actions, and drag-and-drop.
-- Smart text categories and exact format filters.
+- Smart text categories, a manual format override, and an exact-format filter that shows how many entries you have of each format.
 - Structured editors and previews for JSON, Markdown, SQL, XML, CSS/SCSS,
-  YAML, HTML, and common programming languages.
+  YAML, HTML, PowerShell, shell scripts, and common programming languages.
 - Read-only preview for supported text-based files.
 - Local Text Compare with aligned line and word differences, search, change
   navigation, synchronized scrolling, a minimap, collapsible unchanged

@@ -1,3 +1,42 @@
+# ClipVault Studio 2.2.0
+
+ClipVault Studio 2.2.0 makes code in the text workbench readable at a glance, recognizes PowerShell and shell scripts, lets you correct the detected format yourself, and adds an optional way to run a PowerShell document from the editor.
+
+## Syntax Highlighting
+
+- Highlighted fenced code blocks in Markdown by the language named on the fence instead of painting the whole block one colour.
+- Added PowerShell highlighting for block and line comments, interpolating and literal strings, type names, variables, parameter switches, and Verb-Noun cmdlets.
+- Added shell highlighting for shebangs, comments, quoted strings, variables, option flags, keywords, and common commands.
+- Applied the same highlighting to the Markdown preview pane, which previously rendered every code block as plain text in a single colour.
+- Fixed a definition error that could make the editor throw on every repaint and stop responding when a document was highlighted as a shell script.
+
+## Format Detection And Correction
+
+- Detected PowerShell and shell scripts as their own formats, with their own file extensions when saving to a file.
+- Added a format picker to the workbench so a detection that guessed wrong can be corrected by hand; for a stored history entry the correction is remembered.
+- Stopped a price such as "$20" in ordinary prose from being read as a shell script.
+- Stopped an environment-variable assignment such as `$env:Name = 'value'` from being read as TypeScript.
+
+## Exact Format Filter
+
+- Rebuilt the exact-format menu from the formats the application supports, so PowerShell, shell, and plain text are now offered alongside the existing ones.
+- Added a count of stored entries next to every format, so it is clear which formats the history actually holds.
+- Marked the active format in the menu and added a reset entry.
+
+## Run A Script (Pro)
+
+- Added an optional Run button to the workbench for PowerShell documents, with a choice to run as administrator.
+- The button appears only in the editor, where the whole script is visible, and never on a history row, a hotkey, or the command palette.
+- The feature is off until it is switched on in Settings, and it is unavailable in the Microsoft Store package.
+
+## Store And Packaging
+
+- Application version: `2.2.0`.
+- Microsoft Store package version: `2.2.0.0`.
+- The Store package remains the Free base application with unchanged Monthly and Lifetime purchase identifiers.
+
+---
+
 # ClipVault Studio 2.1.6
 
 ClipVault Studio 2.1.6 preserves collections in backups and improves restoration of edited and previously deleted history.
@@ -165,29 +204,25 @@ ClipVault Studio 2.1.2 refines everyday navigation, document search, and backgro
 
 # ClipVault Studio 2.1.1
 
-ClipVault Studio 2.1.1 improves the reliability and control of optional local
-AI model installation and updates.
+ClipVault Studio 2.1.1 improves optional local AI model management and keeps model setup reliable across different Windows storage locations.
 
 ## Local AI Model Management
 
-- Added a user-selectable model storage folder, including full support for
-  Unicode and Cyrillic paths.
-- Added a manual model update check with release details and explicit user
-  confirmation before any replacement is downloaded.
-- Kept model delivery independent from Microsoft Store application releases
-  while enforcing signed-manifest and minimum-app-version compatibility.
-- Hardened resumable downloads with signed exact-size limits, HTTPS validation,
-  SHA-256 verification, and safe fallback when a server cannot resume a range.
-- Preserved the currently verified model until a replacement finishes download
-  and validation successfully.
-- Added local diagnostics reporting for model discovery, download, path, and
-  runtime failures without uploading logs automatically.
+- Added a user-selectable model storage location with support for Unicode and Cyrillic paths.
+- Added a compatibility runtime path for native AI components that cannot open non-ASCII paths directly.
+- Added signed remote model-manifest checks so a model update can be offered without shipping a new application package.
+- Added explicit confirmation before replacing an installed model and kept the current verified model available when an update check fails.
+- Added model removal, location migration, resumed downloads, integrity verification, and recovery diagnostics.
+
+## Reliability And Verification
+
+- Expanded automated coverage for model manifests, path migration, update checks, interrupted downloads, comparison behavior, and trial transitions.
+- Kept clipboard monitoring active when the effective Free, Trial, or Pro state changes.
 
 ## Store And Packaging
 
 - Application version: `2.1.1`.
 - Microsoft Store package version: `2.1.1.0`.
-- The optional Qwen model remains outside the Store package.
 - Microsoft Store Monthly and Lifetime purchase identifiers remain unchanged.
 
 ---
@@ -219,7 +254,7 @@ ClipVault Studio 2.1 turns clipboard history into a faster keyboard-first workfl
 ## About And Documentation
 
 - Rebuilt Settings > About with the installed version, active edition, Microsoft Store link, local-first privacy summary, user guide, support, and bundled third-party notices.
-- Updated product documentation for Quick Paste, version 2.1, Store certification, privacy, architecture, and support.
+- Updated public and private documentation for Quick Paste, version 2.1, Store certification, privacy, architecture, and support.
 
 ## Store And Packaging
 

@@ -1,6 +1,6 @@
 # ClipVault Studio User Guide
 
-This guide describes the current Free, trial, and Pro workflows in ClipVault Studio 2.1.6.
+This guide describes the current Free, trial, and Pro workflows in ClipVault Studio 2.2.0.
 
 ## First Launch
 
@@ -170,9 +170,11 @@ Pro adds automatic classification into:
 - Styles;
 - Code.
 
-Recognized exact formats include JSON, Markdown, SQL, C#, JavaScript, TypeScript, Python, XML, HTML, CSS, SCSS, YAML, plain text, and generic code.
+Recognized exact formats include JSON, Markdown, SQL, C#, JavaScript, TypeScript, Python, PowerShell, Bash/Shell, XML, HTML, CSS, SCSS, YAML, plain text, and generic code.
 
-Use the Text filter menu to select a category or exact format. Format indexing runs in the background and database-backed filtering does not require the user to scroll through the full history first.
+Use the Text filter menu to select a category or exact format. The exact-format menu is built from the formats the application supports and shows how many stored entries carry each one, so it is clear which formats the history actually holds. Format indexing runs in the background and database-backed filtering does not require the user to scroll through the full history first.
+
+Detection is a guess. The format picker next to the workbench title lets you correct it. For a stored history entry the correction is saved with the record; for a file preview it applies to the current session.
 
 ### JSON
 
@@ -212,7 +214,17 @@ Stylesheet tools provide formatting, minification, and structural validation for
 
 ### Other Code
 
-C#, JavaScript, TypeScript, Python, HTML, YAML, and generic code use syntax-aware editing where a matching highlighting definition is available.
+C#, JavaScript, TypeScript, Python, PowerShell, Bash/Shell, HTML, YAML, and generic code use syntax-aware editing where a matching highlighting definition is available. Fenced code blocks inside a Markdown document are highlighted by the language named on the fence, in the editor and in the rendered preview.
+
+### Run A Script
+
+For a PowerShell document the workbench can open Windows PowerShell and run it, with an optional **As administrator** choice.
+
+The feature is off until it is enabled in **Settings → Privacy → Run scripts from the text editor**, and it is not available in the Microsoft Store package.
+
+What runs is the text on screen, including unsaved edits. The script opens in its own PowerShell window, which stays open so the output can be read; nothing is captured back into ClipVault Studio.
+
+The Run button appears only in the editor, where the whole script is visible. It is never offered on a history row, from a hotkey, or from the command palette. Clipboard content comes from wherever it was copied, so read a script before running it.
 
 ### Text Compare
 
