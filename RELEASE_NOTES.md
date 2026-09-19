@@ -27,7 +27,7 @@ ClipVault Studio 2.2.0 makes code in the text workbench readable at a glance, re
 
 - Added an optional Run button to the workbench for PowerShell documents, with a choice to run as administrator.
 - The button appears only in the editor, where the whole script is visible, and never on a history row, a hotkey, or the command palette.
-- The feature is off until it is switched on in Settings, and it is unavailable in the Microsoft Store package.
+- The feature is off until it is switched on in Settings. In the Store build a launched script inherits the package context, so registry writes and writes to the application's own folders can be redirected to the package-private store.
 
 ## Store And Packaging
 

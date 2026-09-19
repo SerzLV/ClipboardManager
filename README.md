@@ -21,6 +21,7 @@ Current release: **2.2.0** (Microsoft Store package `2.2.0.0`). Store availabili
 - PowerShell and shell scripts are recognized as formats of their own, with matching highlighting and file extensions.
 - A format picker in the text workbench corrects a detection that guessed wrong, and the correction is remembered for a stored history entry.
 - The exact-format filter lists every supported format and shows how many stored entries carry each one.
+- Pro can run a PowerShell document from the editor, optionally as administrator. It is off until enabled in Settings, and the Run button exists only in the editor, where the whole script is visible.
 
 ## Editions
 
@@ -87,6 +88,8 @@ Pro adds:
   regions, word wrap, and movable splitters.
 - Quick image annotation with text, highlights, shapes, arrows, colors,
   opacity, and save-as-copy.
+- Optional script runner that opens a PowerShell document in Windows PowerShell,
+  off by default and offered only from the editor.
 - Optional local AI Assist for generation, rewriting, summarization,
   translation, and explanation of text or code.
 

@@ -220,7 +220,9 @@ C#, JavaScript, TypeScript, Python, PowerShell, Bash/Shell, HTML, YAML, and gene
 
 For a PowerShell document the workbench can open Windows PowerShell and run it, with an optional **As administrator** choice.
 
-The feature is off until it is enabled in **Settings → Privacy → Run scripts from the text editor**, and it is not available in the Microsoft Store package.
+The feature is off until it is enabled in **Settings → Privacy → Run scripts from the text editor**.
+
+In the Microsoft Store build the launched script inherits the package context, so a script that writes to the registry or to the application's own folders can land in the package-private store instead of the usual location. Scripts that work on files and run commands elsewhere on the machine are unaffected.
 
 What runs is the text on screen, including unsaved edits. The script opens in its own PowerShell window, which stays open so the output can be read; nothing is captured back into ClipVault Studio.
 
