@@ -36,7 +36,16 @@ Relevant reports include:
 - unsafe handling of imported backups, local files, links, or model files;
 - bypass, downgrade, or unintended disclosure in Secret Vault, Recovery Kit,
   protected-backup, password, or automatic-lock handling;
+- any path that starts a script without the user seeing its full text first, or
+  that runs text other than what the editor was showing;
+- exposure of a generated script file to another user of the machine, or a
+  script file that survives longer than the documented cleanup;
 - vulnerabilities in local storage, diagnostics, or optional AI features.
+
+A script the user chooses to run is executed with their own privileges by
+design, and its effects are not a vulnerability in ClipVault Studio. What is in
+scope is the application starting a script the user did not see, did not
+approve, or did not intend.
 
 Microsoft Store account, billing, and payment issues should be reported to
 Microsoft Support. Vulnerabilities in third-party components should also be

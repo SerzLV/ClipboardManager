@@ -22,6 +22,8 @@ File history stores references to original files. A stored path does not guarant
 
 Link previews depend on third-party websites and can be incomplete, outdated, unavailable, or misleading. Opening a saved link leaves ClipVault Studio and is subject to the destination's terms and security.
 
+Running a script from the text workbench executes code on the user's computer with the user's own privileges, and with administrator privileges when that option is chosen and the Windows elevation prompt is accepted. Clipboard content originates wherever it was copied from, including websites, messages, and documents written by other people. ClipVault Studio does not analyse, sanitize, sandbox, or vouch for a script; it starts Windows PowerShell on the text the user has open and can read in full. The user is responsible for reading a script before running it and for the consequences of running it, including data loss and system changes.
+
 Local AI Assist can generate inaccurate, incomplete, biased, insecure, or otherwise unsuitable output. Users must review generated text, translations, summaries, explanations, code, and passwords before relying on them. AI output is not professional, legal, medical, financial, or security advice.
 
 The seven-day Pro trial and permanent Pro purchase are subject to the application's license checks and Microsoft Store availability. Prices, taxes, regional availability, refunds, and payment processing are controlled by Microsoft Store.

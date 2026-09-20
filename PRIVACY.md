@@ -125,6 +125,18 @@ HKCU\Software\Serz Studio\ClipVault Studio
 
 This state is used only to determine trial availability, integrity, start time, and expiration for the current Windows user/device.
 
+### Script Files
+
+When the user runs a PowerShell document from the text workbench, the application writes that document to a file so Windows PowerShell can read it:
+
+```text
+%TEMP%\ClipVault.Scripts\clipvault-<random>.ps1
+```
+
+The file contains exactly the text the user had open in the editor, which can include anything they copied, and it is written in the per-user temporary folder rather than a shared one. It cannot be deleted immediately, because the interpreter may not have read it yet; files left from earlier sessions are removed when the application starts. Nothing is uploaded, and the command line passed to the interpreter contains only the path, not the script text.
+
+This folder exists only if the feature has been enabled in **Settings → Privacy** and a script has been run. Deleting it at any time is safe.
+
 ## Protected Secrets
 
 Secrets are stored in the main local database. Before a Secret Vault is configured, values are encrypted with Windows DPAPI using `DataProtectionScope.CurrentUser` and access uses Windows verification.

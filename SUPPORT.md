@@ -12,7 +12,7 @@ Please include:
 
 - ClipVault Studio version.
 - Windows version and whether the system is x64.
-- Installation source: Microsoft Store.
+- Installation source: Microsoft Store or an internal development build.
 - Current edition: Free, 7-day trial, or Pro.
 - The affected area: clipboard capture, search, Quick Paste, Secret Vault, Recovery Kit, protected backup, link, image, file preview, text workbench, collection, AI Assist, tray, startup, hotkey, import/export, purchase, or trial.
 - Clear reproduction steps.
@@ -76,5 +76,7 @@ Create a minimal sanitized example whenever possible.
 - Remember that the Secret Vault master password and `.cvbackup` password are independent.
 - Use only the most recently created Recovery Kit; creating a replacement invalidates earlier kits.
 - Standard `.clipboard.json` exports never contain Secrets. Use a protected `.cvbackup` only when Secret export is required.
+- The Run button appears only for a PowerShell document, only after the feature is enabled in **Settings → Privacy**, and only in the editor. If it is missing, check the format shown next to the title and the setting.
+- If a script closes immediately or reports that running scripts is disabled, the machine's PowerShell execution policy is blocking it. ClipVault Studio does not override that policy.
 
 See [docs/USER_GUIDE.md](docs/USER_GUIDE.md) for feature behavior and troubleshooting.
