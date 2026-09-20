@@ -13,7 +13,13 @@ This public repository is the official **documentation and support portal** for
 ClipVault Studio. Application source code and build infrastructure are not
 published here.
 
-Current release: **2.2.0** (Microsoft Store package `2.2.0.0`). Store availability depends on update rollout.
+Current release: **2.2.1** (Microsoft Store package `2.2.1.0`). Store availability depends on update rollout.
+
+## What's New In 2.2.1
+
+- Fixed code blocks and inline code taking the colour reserved for string literals, which made an unhighlighted snippet read as one block of green. Code now has its own colour in both themes.
+- Fixed AI answers showing their code that way throughout. A generated answer is dense with inline code and its fences often carry no language label, so almost none of it was ever coloured.
+- A fenced block whose fence names no language, or an unknown one, is now recognized from its own content, so generated JSON, SQL, or a shell command is highlighted like the same snippet pasted by hand.
 
 ## What's New In 2.2.0
 

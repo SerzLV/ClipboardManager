@@ -1,3 +1,23 @@
+# ClipVault Studio 2.2.1
+
+ClipVault Studio 2.2.1 fixes code that rendered as one flat colour outside the editor, most visibly in AI answers.
+
+## Syntax Highlighting
+
+- Fixed code blocks and inline code taking the colour reserved for string literals, which made an unhighlighted snippet read as a single block of green. Code now has its own colour in both themes, and only a real string token is painted as a string.
+- Fixed AI answers showing their code this way throughout, in the AI workspace and in the editor popover alike. A generated answer is dense with inline code and its fences often carry no language label, so almost none of it was ever coloured.
+- Added language detection for a fenced code block whose fence names no language, or names one the application does not know. The block is now recognized from its own content by the same detector that drives the smart text categories, so generated JSON, SQL, or a shell command is highlighted exactly as the same snippet is when pasted.
+- Kept the language named on the fence authoritative; detection only fills in when the label is missing or unknown, and stays out of the way for ordinary prose inside a fence.
+- Applied the same correction to the Markdown preview and the in-app guide, which share the renderer.
+
+## Store And Packaging
+
+- Application version: `2.2.1`.
+- Microsoft Store package version: `2.2.1.0`.
+- The Store package remains the Free base application with unchanged Monthly and Lifetime purchase identifiers.
+
+---
+
 # ClipVault Studio 2.2.0
 
 ClipVault Studio 2.2.0 makes code in the text workbench readable at a glance, recognizes PowerShell and shell scripts, lets you correct the detected format yourself, and adds an optional way to run a PowerShell document from the editor.
